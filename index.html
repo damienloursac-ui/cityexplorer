@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CityExplorer</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -37,17 +40,6 @@ body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;o
 .loader-ring{width:48px;height:48px;border:2px solid rgba(255,209,102,.15);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loader-text{font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(240,237,232,.38)}
-
-/* ══ TOP BAR ══ */
-#top-bar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.2rem .7rem;background:var(--dark);border-bottom:1px solid rgba(255,255,255,.06)}
-.top-city-btn{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.3rem .7rem .3rem .3rem;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);transition:background .18s}
-.top-city-btn:active{background:rgba(255,255,255,.08)}
-.top-flag{font-size:1.5rem}
-.top-city-name{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;color:var(--accent)}
-.top-change{font-size:.56rem;color:rgba(240,237,232,.35);letter-spacing:.1em;text-transform:uppercase}
-.top-bar-count{text-align:right}
-.top-count-num{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent)}
-.top-count-lbl{font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,237,232,.38)}
 
 /* ══ BOTTOM NAV ══ */
 #bottom-nav{flex-shrink:0;display:flex;background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);padding-bottom:env(safe-area-inset-bottom,0)}
@@ -223,6 +215,114 @@ body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;o
 .team-tags{display:flex;gap:.32rem;margin-top:.45rem;flex-wrap:wrap}
 .team-tag{font-size:.57rem;padding:.1rem .38rem;border-radius:3px;background:rgba(255,209,102,.1);color:var(--accent);border:1px solid rgba(255,209,102,.2)}
 .team-color-bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+
+/* ══ FOOD ══ */
+.food-header{padding:1.1rem 1.2rem .5rem;background:var(--dark);position:sticky;top:0;z-index:2;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.food-ttl{font-family:'Bebas Neue',sans-serif;font-size:1.85rem;letter-spacing:.05em;line-height:1}
+.food-ttl span{color:var(--accent)}
+.food-sub{font-size:.66rem;color:rgba(240,237,232,.35);letter-spacing:.14em;text-transform:uppercase;margin-top:.22rem}
+.food-cats{display:flex;gap:.35rem;margin-top:.65rem;overflow-x:auto;scrollbar-width:none;padding-bottom:.1rem}
+.food-cats::-webkit-scrollbar{display:none}
+.food-cat{padding:.3rem .9rem;border-radius:18px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(240,237,232,.42);font-size:.72rem;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .18s}
+.food-cat.active{background:var(--accent);border-color:var(--accent);color:var(--dark);font-weight:600}
+.food-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:.75rem 1.2rem 5rem}
+
+/* Featured restaurant (first) */
+.resto-featured{border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);margin-bottom:.85rem;cursor:pointer;transition:border-color .18s;position:relative}
+.resto-featured:active{border-color:var(--accent)}
+.resto-feat-photo{width:100%;height:180px;position:relative;background:#111;overflow:hidden}
+.resto-feat-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s;opacity:0}
+.resto-feat-photo img.ok{opacity:1}
+.resto-feat-photo .ef{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.28;background:linear-gradient(135deg,#1a1206,#0a0a0f)}
+.resto-feat-photo .shimmer{position:absolute;inset:0}
+/* Badge étoiles Michelin sur la photo */
+.michelin-badge{position:absolute;top:.7rem;left:.7rem;background:rgba(10,10,15,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,209,102,.35);border-radius:20px;padding:.2rem .65rem;font-size:.7rem;color:var(--accent);font-weight:500;letter-spacing:.05em}
+.feat-price-badge{position:absolute;top:.7rem;right:.7rem;background:rgba(10,10,15,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:.2rem .65rem;font-size:.75rem;color:rgba(240,237,232,.8)}
+.resto-feat-body{padding:.9rem 1rem 1rem}
+.resto-feat-name{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:.04em;color:var(--text);line-height:1.05}
+.resto-feat-cuisine{font-size:.68rem;color:var(--accent);margin:.12rem 0 .4rem;letter-spacing:.1em;text-transform:uppercase}
+.resto-feat-desc{font-size:.8rem;color:rgba(240,237,232,.65);line-height:1.55;margin-bottom:.5rem}
+.resto-feat-meta{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.resto-meta-item{font-size:.66rem;color:rgba(240,237,232,.45);display:flex;align-items:center;gap:.25rem}
+.resto-tags{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.5rem}
+.resto-tag{font-size:.58rem;padding:.1rem .42rem;border-radius:3px;background:rgba(255,209,102,.1);color:var(--accent);border:1px solid rgba(255,209,102,.22)}
+.resto-gmap{position:absolute;bottom:.75rem;right:.75rem;font-size:.75rem;background:rgba(10,10,15,.75);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:.25rem .55rem;cursor:pointer;color:var(--text)}
+
+/* Regular restaurant card */
+.resto-card{display:flex;gap:0;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);margin-bottom:.65rem;cursor:pointer;transition:border-color .18s;position:relative}
+.resto-card:active{border-color:var(--accent)}
+.resto-card-photo{width:95px;height:95px;flex-shrink:0;position:relative;background:#111;overflow:hidden}
+.resto-card-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s;opacity:0}
+.resto-card-photo img.ok{opacity:1}
+.resto-card-photo .ef{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.5rem;opacity:.4}
+.resto-card-photo .shimmer{position:absolute;inset:0}
+.resto-card-body{flex:1;padding:.7rem .9rem;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.resto-card-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--text);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.resto-card-cuisine{font-size:.6rem;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin:.08rem 0 .3rem}
+.resto-card-desc{font-size:.72rem;color:rgba(240,237,232,.58);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.resto-card-meta{display:flex;gap:.38rem;margin-top:.38rem;flex-wrap:wrap;align-items:center}
+.resto-card-gmap{position:absolute;top:.5rem;right:.5rem;font-size:.7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:.15rem .35rem;cursor:pointer}
+/* Prix styling */
+.price-tag{font-size:.65rem;color:rgba(240,237,232,.55);font-weight:500}
+.price-tag.exp{color:#F4A261}
+/* ══ WEATHER WIDGET (top bar) ══ */
+#top-bar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.2rem .65rem;background:var(--dark);border-bottom:1px solid rgba(255,255,255,.06)}
+.top-city-btn{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.3rem .7rem .3rem .3rem;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);transition:background .18s}
+.top-city-btn:active{background:rgba(255,255,255,.08)}
+.top-flag{font-size:1.5rem}
+.top-city-name{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;color:var(--accent)}
+.top-change{font-size:.56rem;color:rgba(240,237,232,.35);letter-spacing:.1em;text-transform:uppercase}
+#weather-widget{cursor:pointer;text-align:right;padding:.3rem .55rem;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);transition:background .18s;min-width:110px}
+#weather-widget:active{background:rgba(255,255,255,.09)}
+.wx-loading{display:flex;align-items:center;justify-content:center;height:36px}
+.wx-spinner{width:16px;height:16px;border:1.5px solid rgba(255,209,102,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.wx-main{display:flex;align-items:center;justify-content:flex-end;gap:.35rem}
+.wx-main span:first-child{font-size:1.3rem}
+#wx-temp{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--accent);letter-spacing:.02em}
+.wx-details{display:flex;flex-direction:column;align-items:flex-end;gap:.05rem;margin-top:.08rem}
+#wx-desc{font-size:.6rem;color:rgba(240,237,232,.55);letter-spacing:.05em;white-space:nowrap}
+#wx-feels{font-size:.58rem;color:rgba(240,237,232,.35)}
+.wx-extra{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.1rem}
+#wx-wind,#wx-rain{font-size:.58rem;color:rgba(240,237,232,.4)}
+
+/* ══ WEATHER FULL PANEL ══ */
+#weather-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:none}
+#weather-overlay.show{display:block}
+#weather-panel{position:fixed;top:0;right:0;width:min(340px,92vw);height:100dvh;background:#0d0d18;border-left:1px solid rgba(255,209,102,.15);z-index:201;transform:translateX(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:2rem}
+#weather-panel.open{transform:translateX(0)}
+.wx-panel-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.2rem .8rem;position:sticky;top:0;background:#0d0d18;border-bottom:1px solid rgba(255,255,255,.06);z-index:2}
+.wx-panel-city{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.05em;color:var(--accent)}
+.wx-panel-close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:30px;height:30px;color:var(--text);cursor:pointer;font-size:.85rem}
+.wx-panel-now{display:flex;align-items:center;gap:1rem;padding:1.2rem 1.2rem .6rem}
+.wx-panel-icon{font-size:3.5rem}
+.wx-panel-temp{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:var(--accent);letter-spacing:.02em;line-height:1}
+.wx-panel-desc{font-size:.82rem;color:rgba(240,237,232,.6);margin-top:.2rem;text-transform:capitalize}
+.wx-panel-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;padding:.5rem 1.2rem 1rem}
+.wx-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.65rem .4rem;text-align:center}
+.wx-stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--accent)}
+.wx-stat-lbl{font-size:.55rem;color:rgba(240,237,232,.38);letter-spacing:.08em;text-transform:uppercase;margin-top:.1rem}
+.wx-panel-section{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(240,237,232,.3);padding:.5rem 1.2rem .4rem}
+
+/* Forecast 7 days */
+.wx-forecast{display:flex;gap:.5rem;padding:0 1.2rem .8rem;overflow-x:auto;scrollbar-width:none}
+.wx-forecast::-webkit-scrollbar{display:none}
+.wx-day{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.6rem .5rem;min-width:60px;text-align:center;flex-shrink:0}
+.wx-day-name{font-size:.6rem;color:rgba(240,237,232,.45);letter-spacing:.08em;text-transform:uppercase}
+.wx-day-icon{font-size:1.4rem;margin:.3rem 0}
+.wx-day-max{font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:var(--accent)}
+.wx-day-min{font-size:.62rem;color:rgba(240,237,232,.38)}
+.wx-day-rain{font-size:.58rem;color:#7eb3ff;margin-top:.15rem}
+
+/* Hourly */
+.wx-hourly{display:flex;gap:.4rem;padding:0 1.2rem .8rem;overflow-x:auto;scrollbar-width:none}
+.wx-hourly::-webkit-scrollbar{display:none}
+.wx-hour{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:.5rem .4rem;min-width:52px;text-align:center;flex-shrink:0}
+.wx-hour-time{font-size:.58rem;color:rgba(240,237,232,.4)}
+.wx-hour-icon{font-size:1.1rem;margin:.2rem 0}
+.wx-hour-temp{font-family:'Bebas Neue',sans-serif;font-size:.9rem;color:var(--text)}
+.wx-hour-rain{font-size:.55rem;color:#7eb3ff}
+.wx-credits{font-size:.58rem;color:rgba(240,237,232,.2);text-align:center;padding:.8rem 1.2rem 0;letter-spacing:.05em}
+
 </style>
 </head>
 <body>
@@ -267,8 +367,54 @@ body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;o
       <span class="top-flag" id="top-flag">🗽</span>
       <div><div class="top-city-name" id="top-city-name">NYC</div><div class="top-change">changer ↗</div></div>
     </div>
-    <div class="top-bar-count"><div class="top-count-num" id="top-count">—</div><div class="top-count-lbl">monuments</div></div>
+    <!-- WEATHER WIDGET -->
+    <div id="weather-widget">
+      <div id="weather-loading" class="wx-loading">
+        <div class="wx-spinner"></div>
+      </div>
+      <div id="weather-data" style="display:none">
+        <div class="wx-main">
+          <span id="wx-icon">☀️</span>
+          <span id="wx-temp">—°</span>
+        </div>
+        <div class="wx-details">
+          <span id="wx-desc">—</span>
+          <span id="wx-feels">Ressenti —°</span>
+        </div>
+        <div class="wx-extra">
+          <span id="wx-wind">💨 —</span>
+          <span id="wx-rain">🌧 —</span>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- WEATHER FULL PANEL -->
+  <div id="weather-panel">
+    <div class="wx-panel-header">
+      <div class="wx-panel-city" id="wx-panel-city">New York</div>
+      <button class="wx-panel-close" onclick="closeWeather()">✕</button>
+    </div>
+    <div class="wx-panel-now">
+      <span class="wx-panel-icon" id="wx-panel-icon">☀️</span>
+      <div>
+        <div class="wx-panel-temp" id="wx-panel-temp">—°C</div>
+        <div class="wx-panel-desc" id="wx-panel-desc">—</div>
+      </div>
+    </div>
+    <div class="wx-panel-stats">
+      <div class="wx-stat"><div class="wx-stat-val" id="wxp-feels">—</div><div class="wx-stat-lbl">Ressenti</div></div>
+      <div class="wx-stat"><div class="wx-stat-val" id="wxp-hum">—</div><div class="wx-stat-lbl">Humidité</div></div>
+      <div class="wx-stat"><div class="wx-stat-val" id="wxp-wind">—</div><div class="wx-stat-lbl">Vent</div></div>
+      <div class="wx-stat"><div class="wx-stat-val" id="wxp-uv">—</div><div class="wx-stat-lbl">Index UV</div></div>
+    </div>
+    <div class="wx-panel-section">Prévisions 7 jours</div>
+    <div id="wx-forecast" class="wx-forecast"></div>
+    <div class="wx-panel-section">Aujourd'hui heure par heure</div>
+    <div id="wx-hourly" class="wx-hourly"></div>
+    <div class="wx-credits">Données météo · Open-Meteo.com · Mis à jour à l'instant</div>
+  </div>
+  <div id="weather-overlay" onclick="closeWeather()"></div>
 
   <!-- MONUMENTS -->
   <div id="monuments-screen" class="screen active">
@@ -337,6 +483,7 @@ body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;o
     <button class="nav-btn" id="nav-itin" onclick="switchTab('itin')"><span class="nav-icon">🗺️</span><span class="nav-label">Itinéraire</span></button>
     <button class="nav-btn" id="nav-five" onclick="switchTab('five')"><span class="nav-icon">📅</span><span class="nav-label">5 Jours</span></button>
     <button class="nav-btn" id="nav-sports" onclick="switchTab('sports')"><span class="nav-icon">🏆</span><span class="nav-label">Sports</span></button>
+    <button class="nav-btn" id="nav-food" onclick="switchTab('food')"><span class="nav-icon">🍽️</span><span class="nav-label">Food</span></button>
   </div>
 
   <!-- SPORTS SCREEN -->
@@ -347,6 +494,16 @@ body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;o
     </div>
     <div class="sport-tabs" id="sport-tabs"></div>
     <div class="sports-body" id="sports-body"></div>
+  </div>
+
+  <!-- FOOD SCREEN -->
+  <div id="food-screen" class="screen" style="flex-direction:column">
+    <div class="food-header">
+      <div class="food-ttl">Food à <span id="food-city-name">NYC</span></div>
+      <div class="food-sub" id="food-sub">Meilleurs restaurants · Spécialités locales</div>
+      <div class="food-cats" id="food-cats"></div>
+    </div>
+    <div class="food-body" id="food-body"></div>
   </div>
 
   <!-- DETAIL PANEL -->
@@ -574,6 +731,8 @@ function launchCity(key){
   document.getElementById('itin-city-name').textContent=city.name;
   document.getElementById('five-city-name').textContent=city.name;
   document.getElementById('five-sub').textContent=`Parcours optimisé · ${city.landmarks.length} monuments`;
+  // Fetch weather for the city
+  fetchWeather(city.center.lat, city.center.lng);
   selInts=new Set(['all']);selDaysN=1;selTrns='walking';itinData=null;
   buildInterestPills();
   // Pre-fetch all photos
@@ -583,6 +742,7 @@ function launchCity(key){
     renderMonuments('');
     buildFiveDay();
     buildSports();
+    buildFood();
     switchTab('monuments');
     document.getElementById('search-input').value='';
   },900);
@@ -592,7 +752,7 @@ function launchCity(key){
 //  TABS
 // ═══════════════════════════════════════════════════════════
 function switchTab(tab){
-  ['monuments','itin','five','sports'].forEach(t=>{
+  ['monuments','itin','five','sports','food'].forEach(t=>{
     document.getElementById('nav-'+t).classList.toggle('active',t===tab);
     document.getElementById(t+'-screen').classList.toggle('active',t===tab);
   });
@@ -1003,6 +1163,292 @@ function renderSport(i,data){
     } else {sh.style.display='none';ef2.style.display='flex';}
     body.appendChild(card);
   });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FOOD DATA
+// ═══════════════════════════════════════════════════════════
+const FOOD = {
+  nyc: {
+    cats: ['🌟 Gastronomique','🍕 Iconic NYC','🌮 Street Food','☕ Brunch & Coffee','🍣 Asie'],
+    restaurants: [
+      // Gastronomique
+      {cat:0, name:'Eleven Madison Park',   cuisine:'Gastronomique américain',  e:'🌿', price:'$$$$', michelin:'⭐⭐⭐', hood:'Flatiron',          desc:"Trois étoiles Michelin, meilleur restaurant du monde en 2017. Menu dégustation végétalien de 15 plats dans un somptueux bâtiment Art déco.", tags:['3★ Michelin','Végétalien','Vue sur Madison Sq'], map:'https://maps.google.com/?q=Eleven+Madison+Park+NYC', wiki:'Eleven_Madison_Park'},
+      {cat:0, name:'Le Bernardin',          cuisine:'Fruits de mer français',   e:'🐟', price:'$$$$', michelin:'⭐⭐⭐', hood:'Midtown West',       desc:"L'un des seuls restaurants à avoir conservé 3 étoiles Michelin sans interruption depuis 1986. Le temple du poisson à New York.",               tags:['3★ Michelin','Fruits de mer','Français'],  map:'https://maps.google.com/?q=Le+Bernardin+NYC',          wiki:'Le_Bernardin'},
+      {cat:0, name:'Per Se',                cuisine:'Nouvelle cuisine américaine',e:'🎖️',price:'$$$$', michelin:'⭐⭐⭐', hood:'Columbus Circle',    desc:"Le restaurant de Thomas Keller dans le Time Warner Center. Vue sur Central Park, menu 9 services, une expérience de 3h inoubliable.",         tags:['3★ Michelin','Thomas Keller','Central Park'],map:'https://maps.google.com/?q=Per+Se+NYC',                wiki:'Per_Se_(restaurant)'},
+      {cat:0, name:'Daniel',                cuisine:'Française gastronomique',  e:'🇫🇷', price:'$$$$', michelin:'⭐⭐',  hood:'Upper East Side',    desc:"Le restaurant de Daniel Boulud sur la prestigieuse Upper East Side. Cuisine française raffinée dans un cadre fastueux.",                       tags:['2★ Michelin','Français','Prestige'],       map:'https://maps.google.com/?q=Daniel+Restaurant+NYC',     wiki:'Daniel_(restaurant)'},
+      // Iconic NYC
+      {cat:1, name:'Katz\'s Delicatessen',  cuisine:'Deli new-yorkais',         e:'🥪', price:'$',    michelin:'',      hood:'Lower East Side',    desc:"Ouvert en 1888 — le deli le plus célèbre du monde. La scène de When Harry Met Sally y fut tournée. Pastrami et corned-beef légendaires.",      tags:['Depuis 1888','Pastrami','Iconique'],       map:'https://maps.google.com/?q=Katz\'s+Delicatessen+NYC',  wiki:"Katz's_Delicatessen"},
+      {cat:1, name:'Peter Luger Steak House',cuisine:'Steakhouse',              e:'🥩', price:'$$$',  michelin:'',      hood:'Williamsburg',       desc:"Le meilleur steakhouse de New York depuis 1887. Cash uniquement, service brusque, viande parfaite. Une institution brooklynaise incontournable.",  tags:['Depuis 1887','Cash only','Ribeye mythique'],map:'https://maps.google.com/?q=Peter+Luger+Steak+House',  wiki:'Peter_Luger_Steak_House'},
+      {cat:1, name:'Momofuku Noodle Bar',    cuisine:'Ramen fusion',             e:'🍜', price:'$$',   michelin:'',      hood:'East Village',       desc:"L'enseigne de David Chang qui a révolutionné la gastronomie new-yorkaise. Le ramen au porc confit et les buns au porc sont devenus cultes.",        tags:['David Chang','Fusion','Culte'],            map:'https://maps.google.com/?q=Momofuku+Noodle+Bar+NYC',   wiki:'Momofuku_Noodle_Bar'},
+      {cat:1, name:'Shake Shack (Madison Sq)',cuisine:'Burgers premium',         e:'🍔', price:'$',    michelin:'',      hood:'Flatiron',           desc:"Le burger new-yorkais né dans Central Park en 2004. ShackBurger + fries + milkshake dans le kiosque original de Madison Square Park.",          tags:['Born in NYC','File d\'attente','Original'], map:'https://maps.google.com/?q=Shake+Shack+Madison+Square+Park', wiki:'Shake_Shack'},
+      // Street Food
+      {cat:2, name:'Halal Guys',             cuisine:'Street food halal',        e:'🌯', price:'$',    michelin:'',      hood:'Midtown (53rd & 6th)',desc:"La charrette orange la plus célèbre de New York. Poulet ou gyro sur riz avec la sauce blanche secrète et la sauce piquante. File interminable.",   tags:['53rd & 6th','Sauce blanche','Iconic cart'], map:'https://maps.google.com/?q=Halal+Guys+NYC',            wiki:'The_Halal_Guys'},
+      {cat:2, name:'Joe\'s Pizza',           cuisine:'Pizza new-yorkaise',       e:'🍕', price:'$',    michelin:'',      hood:'Greenwich Village',  desc:"La meilleure pizza à la part de New York depuis 1975. Pâte fine, sauce tomate, mozzarella — simple, parfait. Ouvert jusqu'à 4h du matin.",        tags:['Depuis 1975','Dollar slice','Village'],    map:'https://maps.google.com/?q=Joe\'s+Pizza+NYC',          wiki:"Joe's_Pizza"},
+      {cat:2, name:'Xi\'an Famous Foods',    cuisine:'Cuisine du Shaanxi',       e:'🌶️', price:'$',    michelin:'',      hood:'Flushing / Midtown', desc:"Les hand-pulled noodles de Xi'an épicées à souhait. Biang biang noodles et burgers au porc braisé — la meilleure street food chinoise de NYC.",  tags:['Hand-pulled','Épicé','Authentique'],       map:'https://maps.google.com/?q=Xi\'an+Famous+Foods+NYC',   wiki:"Xi'an_Famous_Foods"},
+      // Brunch
+      {cat:3, name:'Balthazar',              cuisine:'Brasserie française',      e:'☕', price:'$$$',  michelin:'',      hood:'SoHo',               desc:"La brasserie parisienne de SoHo, ouverte en 1997. Croissants maison, steak frites et une terrasse animée — le brunch dominical parfait.",         tags:['Brasserie','SoHo','Brunch iconique'],     map:'https://maps.google.com/?q=Balthazar+NYC',             wiki:'Balthazar_(restaurant)'},
+      {cat:3, name:'Clinton St. Baking Co.', cuisine:'Brunch américain',         e:'🥞', price:'$$',   michelin:'',      hood:'Lower East Side',    desc:"Classé meilleur brunch de NYC pendant des années. Les pancakes aux myrtilles avec sirop d'érable au beurre sont une merveille. File 1h min.",    tags:['Pancakes','Brunch','Weekend'],             map:'https://maps.google.com/?q=Clinton+Street+Baking+Company+NYC', wiki:'Clinton_Street_Baking_Company'},
+      // Asie
+      {cat:4, name:'Masa',                   cuisine:'Omakase japonais',         e:'🍱', price:'$$$$', michelin:'⭐⭐⭐', hood:'Columbus Circle',    desc:"Le restaurant le plus cher de New York — 950$ par personne. Masa Takayama prépare lui-même les 20 plats de l'omakase. Une expérience absolue.",  tags:['3★ Michelin','Omakase','950$/pers'],      map:'https://maps.google.com/?q=Masa+Restaurant+NYC',       wiki:'Masa_(restaurant)'},
+      {cat:4, name:'Jing Fong',              cuisine:'Dim Sum cantonais',        e:'🥟', price:'$$',   michelin:'',      hood:'Chinatown',          desc:"Le temple du dim sum à Manhattan. Chariots roulants, salle de 800 couverts, bruyante et délicieuse. Le dim sum le plus authentique hors d'Asie.",  tags:['Dim Sum','Chinatown','Authentique'],       map:'https://maps.google.com/?q=Jing+Fong+NYC',             wiki:'Jing_Fong'},
+    ]
+  },
+  paris: {
+    cats: ['🌟 Gastronomique','🥐 Bistrot Parisien','🌍 Monde','☕ Café & Pâtisserie','🍷 Bistronomie'],
+    restaurants: [
+      {cat:0, name:'Guy Savoy',              cuisine:'Haute cuisine française',  e:'👨‍🍳',price:'$$$$', michelin:'⭐⭐⭐', hood:'Monnaie de Paris',   desc:"Trois étoiles Michelin dans le cadre majestueux de la Monnaie de Paris. Les artichaut aux truffes noires et soupe aux champignons sont légendaires.", tags:['3★ Michelin','Truffes','Monnaie de Paris'], map:'https://maps.google.com/?q=Guy+Savoy+Paris',           wiki:'Guy_Savoy_(restaurant)'},
+      {cat:0, name:'Épicure (Le Bristol)',   cuisine:'Française gastronomique',  e:'🌹', price:'$$$$', michelin:'⭐⭐⭐', hood:'8e arrondissement',  desc:"Le restaurant du palace Le Bristol, par Éric Frechon. Trois étoiles depuis 2009. Les coeurs d'artichaut aux truffes sont un symbole de la haute cuisine.", tags:['3★ Michelin','Palace','Éric Frechon'],    map:'https://maps.google.com/?q=Epicure+Le+Bristol+Paris',  wiki:'Le_Bristol_Paris'},
+      {cat:0, name:'Arpège',                 cuisine:'Végétale gastronomique',   e:'🌱', price:'$$$$', michelin:'⭐⭐⭐', hood:'7e arrondissement',  desc:"Alain Passard, pionnier de la cuisine végétale 3 étoiles. Les légumes de ses propres potagers sont transformés en œuvres d'art comestibles.",          tags:['3★ Michelin','Végétal','Alain Passard'],  map:'https://maps.google.com/?q=Arpège+Paris',              wiki:"L'Arpège"},
+      {cat:1, name:'Café de Flore',          cuisine:'Brasserie parisienne',     e:'☕', price:'$$',   michelin:'',      hood:'Saint-Germain',      desc:"Le café le plus mythique de Paris, QG de Sartre et Simone de Beauvoir. Croissants, œufs au plat et chocolat chaud sur la terrasse de Saint-Germain.",  tags:['Mythique','Saint-Germain','Terrasse'],    map:'https://maps.google.com/?q=Café+de+Flore+Paris',       wiki:'Café_de_Flore'},
+      {cat:1, name:'Bouillon Chartier',      cuisine:'Cuisine bourgeoise',       e:'🍷', price:'$',    michelin:'',      hood:'9e arrondissement',  desc:"Brasserie populaire ouverte en 1896. File d'attente inévitable, prix défiant toute concurrence, cuisine française authentique dans un décor Belle Époque.", tags:['Depuis 1896','Belle Époque','File d\'attente'],map:'https://maps.google.com/?q=Bouillon+Chartier+Paris',  wiki:'Bouillon_Chartier'},
+      {cat:1, name:'Au Pied de Cochon',      cuisine:'Brasserie 24h/24',         e:'🐷', price:'$$',   michelin:'',      hood:'Les Halles',         desc:"L'une des rares brasseries parisiennes ouvertes 24h/24. Gratinée d'oignons, pied de cochon et plateau de fruits de mer à toute heure.",              tags:['24h/24','Depuis 1947','Iconique'],         map:'https://maps.google.com/?q=Au+Pied+de+Cochon+Paris',  wiki:'Au_pied_de_cochon_(Paris)'},
+      {cat:2, name:'Septime',                cuisine:'Bistronomie créative',     e:'🌿', price:'$$$',  michelin:'⭐',    hood:'11e arrondissement', desc:"L'épicentre de la bistronomie parisienne depuis 2011. Menu surprise du marché, cave naturelle, atmosphère décontractée. Réservation 1 mois à l'avance.", tags:['1★ Michelin','Bistronomie','Résa obligatoire'],map:'https://maps.google.com/?q=Septime+Paris',            wiki:'Septime_(restaurant)'},
+      {cat:2, name:'Frenchie',               cuisine:'Cuisine du monde française',e:'🌍',price:'$$$',  michelin:'⭐',    hood:'2e arrondissement',  desc:"Gregory Marchand, formé chez Jamie Oliver. Cuisine franco-internationale dans la ruelle Drouot. Deux adresses voisines : restaurant et bar à vins.",  tags:['1★ Michelin','Fusion','Cosy'],            map:'https://maps.google.com/?q=Frenchie+Paris',            wiki:'Frenchie_(restaurant)'},
+      {cat:3, name:'Ladurée Royale',         cuisine:'Salon de thé & macarons',  e:'🍬', price:'$$',   michelin:'',      hood:'8e arrondissement',  desc:"Le temple du macaron parisien depuis 1862. Salon de thé dans un décor Second Empire somptueux. Les boîtes de macarons rose poudré sont iconiques.",   tags:['Macarons','Depuis 1862','Incontournable'], map:'https://maps.google.com/?q=Ladurée+Royale+Paris',      wiki:'Ladurée'},
+      {cat:3, name:'Angelina',               cuisine:'Salon de thé',             e:'🍫', price:'$$',   michelin:'',      hood:'1er arrondissement', desc:"Le chocolat chaud l'Africain d'Angelina est le plus épais et crémeux de Paris. Cadre Belle Époque face au jardin des Tuileries.",                    tags:['Chocolat chaud','Belle Époque','Tuileries'],map:'https://maps.google.com/?q=Angelina+Paris',           wiki:'Angelina_Paris'},
+      {cat:4, name:'Le Comptoir du Relais',  cuisine:'Bistronomie',              e:'🥘', price:'$$$',  michelin:'',      hood:'Saint-Germain',      desc:"Yves Camdeborde, père de la bistronomie. Le midi formule courte, le soir menu unique gastronomique. Terrasse animée sur la place de l'Odéon.",       tags:['Bistronomie','Yves Camdeborde','Odéon'],  map:'https://maps.google.com/?q=Le+Comptoir+du+Relais+Paris',wiki:'Le_Comptoir_du_Relais'},
+    ]
+  },
+  tokyo: {
+    cats: ['🌟 Gastronomique','🍣 Sushi & Poisson','🍜 Ramen & Noodles','🥩 Yakitori & Grill','🍡 Izakaya'],
+    restaurants: [
+      {cat:0, name:'Sukiyabashi Jiro',       cuisine:'Sushi omakase',            e:'🍣', price:'$$$$', michelin:'⭐⭐⭐', hood:'Ginza',              desc:"Le restaurant du documentaire 'Jiro Dreams of Sushi'. 3 étoiles Michelin pour 10 places, 30 000 ¥. Jiro Ono, le plus grand sushi chef du monde.",   tags:['3★ Michelin','Omakase','30 000¥'],        map:'https://maps.google.com/?q=Sukiyabashi+Jiro+Tokyo',    wiki:'Sukiyabashi_Jiro'},
+      {cat:0, name:'Nihonryori RyuGin',      cuisine:'Kaiseki japonais',         e:'🌸', price:'$$$$', michelin:'⭐⭐⭐', hood:'Roppongi',           desc:"Le kaiseki contemporain de Seiji Yamamoto — 3 étoiles Michelin. La cuisine des quatre saisons japonaises sublimée par des techniques d'avant-garde.",  tags:['3★ Michelin','Kaiseki','Saisonnier'],     map:'https://maps.google.com/?q=RyuGin+Tokyo',              wiki:'Nihonryori_RyuGin'},
+      {cat:1, name:'Sushi Saito',            cuisine:'Edomae sushi',             e:'🍱', price:'$$$$', michelin:'⭐⭐⭐', hood:'Akasaka',            desc:"Considéré comme le meilleur restaurant de sushi au monde. Impossible d'y réserver sans connexion japonaise. 3 étoiles pour 9 places.",               tags:['3★ Michelin','Impossible à réserver','Légendaire'],map:'https://maps.google.com/?q=Sushi+Saito+Tokyo',  wiki:'Sushi_Saito'},
+      {cat:1, name:'Tsukiji Outer Market',   cuisine:'Sushi & fruits de mer frais',e:'🐠',price:'$$', michelin:'',      hood:'Tsukiji',            desc:"Le marché extérieur de Tsukiji — sushis et donburi de thon ultra-frais dès 5h du matin. L'expérience ultime du petit déjeuner à Tokyo.",           tags:['Frais du marché','Dès 5h','Thon'],         map:'https://maps.google.com/?q=Tsukiji+Outer+Market+Tokyo',wiki:'Tsukiji_market'},
+      {cat:2, name:'Ichiran Ramen',          cuisine:'Ramen tonkotsu solo',      e:'🍜', price:'$',    michelin:'',      hood:'Shibuya / Partout',  desc:"Le ramen en cabine individuelle — un concept unique. Chaque paramètre est personnalisable : richesse du bouillon, fermeté des nouilles, épices.",      tags:['Cabines solos','Personnalisable','Chaîne culte'],map:'https://maps.google.com/?q=Ichiran+Ramen+Tokyo',  wiki:'Ichiran'},
+      {cat:2, name:'Fuunji',                 cuisine:'Tsukemen',                 e:'🌊', price:'$',    michelin:'',      hood:'Shinjuku',           desc:"File d'une heure pour ce tsukemen (ramen trempé) légendaire de Shinjuku. Bouillon épais et concentré à tremper avec des nouilles épaisses.",         tags:['Tsukemen','File d\'attente','Shinjuku'],   map:'https://maps.google.com/?q=Fuunji+Tsukemen+Tokyo',     wiki:'Ramen'},
+      {cat:3, name:'Yakitori Alley (Yurakucho)',cuisine:'Yakitori sous le métro',e:'🔥', price:'$$',   michelin:'',      hood:'Yurakucho',          desc:"Les izakayas nichés sous les rails du métro aérien. Brochettes de poulet grillées au charbon, bière froide, fumée et brouhaha — Tokyo authentique.",  tags:['Sous les rails','Ambiance','Charbon'],     map:'https://maps.google.com/?q=Yurakucho+Yakitori+Tokyo',  wiki:'Yakitori'},
+      {cat:3, name:'Nakamura Tokichi',       cuisine:'Wagyu kaiseki',            e:'🥩', price:'$$$$', michelin:'⭐',    hood:'Ginza',              desc:"Wagyu de Matsusaka (le plus cher du monde) en menu kaiseki. Le bœuf persillé fond littéralement en bouche. Une expérience culinaire absolue.",        tags:['1★ Michelin','Wagyu','Matsusaka'],         map:'https://maps.google.com/?q=Nakamura+Tokichi+Ginza+Tokyo',wiki:'Wagyu'},
+      {cat:4, name:'Gonpachi Nishi-Azabu',   cuisine:'Izakaya traditionnel',     e:'🏮', price:'$$',   michelin:'',      hood:'Nishi-Azabu',        desc:"Le restaurant qui a inspiré la scène de Kill Bill. Architecture de temple en bois, cuisine izakaya copieuse, ambiance unique à plusieurs étages.",    tags:['Kill Bill','Temple en bois','Iconique'],   map:'https://maps.google.com/?q=Gonpachi+Nishi+Azabu+Tokyo',wiki:'Gonpachi_Nishi-Azabu'},
+    ]
+  },
+  istanbul: {
+    cats: ['🌟 Gastronomique','🥙 Kebab & Grill','🐟 Poisson & Mer','☕ Café Turc','🍡 Mezze & Meze'],
+    restaurants: [
+      {cat:0, name:'Mikla',                  cuisine:'Méditerranéenne moderne',  e:'🌅', price:'$$$',  michelin:'',      hood:'Beyoğlu (rooftop)',  desc:"Le restaurant du chef Mehmet Gürs au sommet du Marmara Pera Hotel. Vue à 360° sur les minarets et le Bosphore. La meilleure table contemporaine d'Istanbul.", tags:['Rooftop','Vue Bosphore','Top 50 World'],  map:'https://maps.google.com/?q=Mikla+Restaurant+Istanbul', wiki:'Mikla_(restaurant)'},
+      {cat:0, name:'Turk Fatih Tutak',       cuisine:'Anatolienne contemporaine',e:'🌿', price:'$$$$', michelin:'⭐',    hood:'Suadiye',            desc:"Première étoile Michelin turque. Fatih Tutak réinterprète la cuisine anatolienne avec des produits locaux rares et des techniques contemporaines.",      tags:['1★ Michelin','Anatolien','Premier turc'], map:'https://maps.google.com/?q=Turk+Fatih+Tutak+Istanbul', wiki:'Turkish_cuisine'},
+      {cat:1, name:'Dürümzade',              cuisine:'Kebab & dürüm',            e:'🥙', price:'$',    michelin:'',      hood:'Beyoğlu',            desc:"Le dürüm (wrap au kebab) le plus célèbre d'Istanbul, découvert par Anthony Bourdain. File inévitable, prix symbolique, saveur incomparable.",         tags:['Anthony Bourdain','Kebab','File d\'attente'],map:'https://maps.google.com/?q=Dürümzade+Istanbul',       wiki:'Doner_kebab'},
+      {cat:1, name:'Hamdi Restaurant',       cuisine:'Cuisine ottomane & kebab', e:'🏛️', price:'$$',   michelin:'',      hood:'Eminönü',            desc:"Vue sur la Corne d'Or et le Bosphore depuis les terrasses. Spécialités de kebabs du sud-est anatolien et mezze ottomans depuis 1968.",              tags:['Vue Corne d\'or','Depuis 1968','Ottoman'],  map:'https://maps.google.com/?q=Hamdi+Restaurant+Istanbul', wiki:'Ottoman_cuisine'},
+      {cat:2, name:'Balıkçı Sabahattin',     cuisine:'Poisson & meze traditionnel',e:'🐟',price:'$$$', michelin:'',     hood:'Sultanahmet',        desc:"La meilleure table de poisson près de Sainte-Sophie. Dans une maison ottomane du XVIIe siècle, mezze et poissons grillés au charbon sur la terrasse.",  tags:['Maison ottomane','Grillé charbon','XVIIe'], map:'https://maps.google.com/?q=Balikci+Sabahattin+Istanbul',wiki:'Turkish_fish_dishes'},
+      {cat:2, name:'Karaköy Lokantası',      cuisine:'Poisson méditerranéen',    e:'🌊', price:'$$',   michelin:'',      hood:'Karaköy',            desc:"Table de poissons fraîchement pêchés dans le quartier branché de Karaköy. Mezze froids, calamars grillés et baklava maison en dessert.",            tags:['Frais du jour','Karaköy','Mezze'],         map:'https://maps.google.com/?q=Karaköy+Lokantası+Istanbul',wiki:'Karaköy'},
+      {cat:3, name:'Mandabatmaz',            cuisine:'Café turc traditionnel',   e:'☕', price:'$',    michelin:'',      hood:'Beyoğlu',            desc:"La meilleure tasse de café turc d'Istanbul, dans une minuscule échoppe de la rue Olivia Geçidi. Café épais, mousse parfaite — une institution.",       tags:['Café turc','Minuscule','Institution'],     map:'https://maps.google.com/?q=Mandabatmaz+Istanbul',      wiki:'Turkish_coffee'},
+      {cat:4, name:'Çiya Sofrası',           cuisine:'Cuisine anatolienne rare',  e:'🌶️',price:'$$',   michelin:'',      hood:'Kadiköy (Asie)',     desc:"Le légendaire restaurant de Musa Dağdeviren à Kadiköy. Recettes disparues d'Anatolie ressuscitées. Le meze le plus authentique et varié d'Istanbul.",  tags:['Anatolien rare','Kadiköy','Musa Dağdeviren'],map:'https://maps.google.com/?q=Çiya+Sofras+Istanbul',   wiki:'Çiya_Sofrası'},
+    ]
+  },
+  dubai: {
+    cats: ['🌟 Gastronomique','🏙️ Rooftop & Vue','🌍 Cuisines du Monde','🥙 Street Food','☕ Café & Brunch'],
+    restaurants: [
+      {cat:0, name:'Nobu Dubai',             cuisine:'Japonaise-péruvienne',     e:'🍱', price:'$$$$', michelin:'',      hood:'Atlantis The Palm',  desc:"Le flagship de Nobu Matsuhisa à Dubai. Black cod miso, sashimi tiradito et robata — le meilleur Nobu du Moyen-Orient dans un cadre spectaculaire.",   tags:['Nobu','Black cod','Atlantis Palm'],        map:'https://maps.google.com/?q=Nobu+Dubai',                wiki:'Nobu_(restaurant)'},
+      {cat:0, name:'Ossiano',                cuisine:'Fruits de mer gastronomique',e:'🐠',price:'$$$$', michelin:'⭐',   hood:'Atlantis The Palm',  desc:"Restaurant sous-marin face à l'aquarium géant de l'Atlantis. Menu dégustation de 9 plats servi avec 11 millions de litres d'eau et de poissons.",    tags:['1★ Michelin','Sous-marin','Aquarium'],     map:'https://maps.google.com/?q=Ossiano+Dubai',             wiki:'Atlantis,_The_Palm'},
+      {cat:0, name:'Stay by Yannick Alléno', cuisine:'Française gastronomique',  e:'🇫🇷', price:'$$$$', michelin:'⭐',   hood:'One&Only Royal Mirage',desc:"Le restaurant de Yannick Alléno (3★ Michelin à Paris) à Dubai. Cuisine française d'exception dans le palace One&Only Royal Mirage.",             tags:['1★ Michelin','Yannick Alléno','Palace'],   map:'https://maps.google.com/?q=Stay+Yannick+Alleno+Dubai', wiki:'Yannick_Alléno'},
+      {cat:1, name:'Atmosphere (Burj Khalifa)',cuisine:'Internationale',          e:'☁️', price:'$$$$', michelin:'',      hood:'Burj Khalifa 122e',  desc:"Restaurant et lounge au 122e étage du Burj Khalifa — la plus haute table du monde. La vue à 360° sur Dubai la nuit est à couper le souffle.",         tags:['122e étage','Plus haute table','Vue Dubai'],map:'https://maps.google.com/?q=Atmosphere+Burj+Khalifa+Dubai',wiki:'Burj_Khalifa'},
+      {cat:1, name:'Zuma Dubai',             cuisine:'Izakaya japonais moderne',  e:'🍶', price:'$$$',  michelin:'',      hood:'DIFC',               desc:"L'izakaya premium de Dubai, référence du DIFC. Robata, sushi bar et cocktails dans un décor de bois naturel. Terrasse avec vue sur la skyline.",      tags:['Izakaya','DIFC','Terrasse skyline'],       map:'https://maps.google.com/?q=Zuma+Dubai',                wiki:'Zuma_(restaurant)'},
+      {cat:2, name:'Al Ustad Special Kabab', cuisine:'Afghane & kebab',          e:'🔥', price:'$',    michelin:'',      hood:'Deira',              desc:"Le kebab afghan le plus authentique de Dubai, dans le vieux Deira. File d'attente de locaux, prix dérisoire, kebab chargrillé incomparable.",         tags:['Afghan','Deira','File de locaux'],         map:'https://maps.google.com/?q=Al+Ustad+Special+Kabab+Dubai',wiki:'Afghan_cuisine'},
+      {cat:2, name:'Ravi Restaurant',        cuisine:'Pakistanaise',             e:'🌿', price:'$',    michelin:'',      hood:'Satwa',              desc:"L'institution pakistanaise de Dubai depuis 1978. Curry dhal, nihari et naan au four à bois — le repas le moins cher et le plus savoureux de la ville.",   tags:['Depuis 1978','Pakistani','Incontournable'],map:'https://maps.google.com/?q=Ravi+Restaurant+Dubai',     wiki:'Pakistani_cuisine'},
+      {cat:3, name:'Bu Qtair',               cuisine:'Poisson frit local',       e:'🐟', price:'$',    michelin:'',      hood:'Jumeirah',           desc:"Un hangar sur la plage où des pêcheurs servent leur prise du jour frite à la minute. La crevette et le poisson marinés aux épices sont divins.",         tags:['Pêcheurs','Poisson du jour','Plage'],      map:'https://maps.google.com/?q=Bu+Qtair+Dubai',            wiki:'Dubai_cuisine'},
+      {cat:4, name:'Tom & Serg',             cuisine:'Café & brunch australien', e:'☕', price:'$$',   michelin:'',      hood:'Al Quoz',            desc:"Le café brunch le plus branché de Dubai dans le quartier des galeries d'art d'Al Quoz. Flat white parfait et menu brunch copieux le week-end.",       tags:['Brunch','Al Quoz','Café culture'],         map:'https://maps.google.com/?q=Tom+and+Serg+Dubai',        wiki:'Dubai'},
+    ]
+  }
+};
+
+let activeFoodCat = 0;
+
+// ═══════════════════════════════════════════════════════════
+//  FOOD FUNCTIONS
+// ═══════════════════════════════════════════════════════════
+function buildFood(){
+  if(!city)return;
+  const key=Object.keys(CITIES).find(k=>CITIES[k]===city);
+  const data=FOOD[key];if(!data)return;
+  activeFoodCat=0;
+  document.getElementById('food-city-name').textContent=city.name;
+  document.getElementById('food-sub').textContent=`${data.restaurants.length} restaurants · ${data.cats.length} catégories`;
+  const cats=document.getElementById('food-cats');cats.innerHTML='';
+  data.cats.forEach((c,i)=>{
+    const btn=document.createElement('button');btn.className='food-cat'+(i===0?' active':'');
+    btn.textContent=c;btn.onclick=()=>selFoodCat(i,data);cats.appendChild(btn);
+  });
+  // Pre-fetch food photos
+  data.restaurants.forEach(r=>{if(r.wiki)fetchWikiPhoto(r.wiki);});
+  renderFood(0,data);
+}
+function selFoodCat(i,data){
+  activeFoodCat=i;
+  document.querySelectorAll('.food-cat').forEach((b,j)=>b.classList.toggle('active',j===i));
+  renderFood(i,data);
+}
+function renderFood(catIdx,data){
+  const restos=data.restaurants.filter(r=>r.cat===catIdx);
+  const body=document.getElementById('food-body');body.innerHTML='';
+  if(!restos.length){body.innerHTML='<div style="padding:3rem;text-align:center;color:rgba(240,237,232,.3);font-size:.85rem">Aucun restaurant dans cette catégorie</div>';return;}
+  restos.forEach((r,i)=>{
+    body.appendChild(i===0?mkRestoFeatured(r):mkRestoCard(r));
+  });
+}
+
+function loadRestoPhoto(wrap,wiki,fallbackEmoji){
+  const img=wrap.querySelector('img');
+  const sh=wrap.querySelector('.shimmer');
+  const ef2=wrap.querySelector('.ef');
+  if(wiki){
+    fetchWikiPhoto(wiki).then(src=>{
+      sh.style.display='none';
+      if(src){img.onload=()=>{img.classList.add('ok');ef2.style.display='none';};img.onerror=()=>{ef2.style.display='flex';};img.src=src;}
+      else{ef2.style.display='flex';}
+    });
+  } else {sh.style.display='none';ef2.style.display='flex';}
+}
+
+function mkRestoFeatured(r){
+  const card=document.createElement('div');card.className='resto-featured';
+  const stars=r.michelin?`<div class="michelin-badge">${r.michelin}</div>`:'';
+  card.innerHTML=`
+    <div class="resto-feat-photo">
+      <div class="shimmer"></div><img alt="${r.name}"><div class="ef">${r.e}</div>
+      ${stars}
+      <div class="feat-price-badge">${r.price}</div>
+    </div>
+    <div class="resto-feat-body">
+      <div class="resto-feat-name">${r.name}</div>
+      <div class="resto-feat-cuisine">${r.cuisine}</div>
+      <div class="resto-feat-desc">${r.desc}</div>
+      <div class="resto-feat-meta">
+        <span class="resto-meta-item">📍 ${r.hood}</span>
+      </div>
+      <div class="resto-tags">${r.tags.map(t=>`<span class="resto-tag">${t}</span>`).join('')}</div>
+    </div>
+    <div class="resto-gmap" onclick="window.open('${r.map}','_blank')">📍 Maps</div>`;
+  loadRestoPhoto(card.querySelector('.resto-feat-photo'),r.wiki,r.e);
+  return card;
+}
+
+function mkRestoCard(r){
+  const card=document.createElement('div');card.className='resto-card';
+  const stars=r.michelin?`<span class="sb">${r.michelin}</span>`:'';
+  card.innerHTML=`
+    <div class="resto-card-photo">
+      <div class="shimmer"></div><img alt="${r.name}"><div class="ef">${r.e}</div>
+    </div>
+    <div class="resto-card-body">
+      <div class="resto-card-name">${r.name}</div>
+      <div class="resto-card-cuisine">${r.cuisine}</div>
+      <div class="resto-card-desc">${r.desc}</div>
+      <div class="resto-card-meta">
+        ${stars}
+        <span class="price-tag${r.price.length>=3?' exp':''}">${r.price}</span>
+        <span class="resto-meta-item" style="font-size:.6rem">📍 ${r.hood}</span>
+      </div>
+    </div>
+    <div class="resto-card-gmap" onclick="event.stopPropagation();window.open('${r.map}','_blank')">📍</div>`;
+  loadRestoPhoto(card.querySelector('.resto-card-photo'),r.wiki,r.e);
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WEATHER — Open-Meteo API (free, no key)
+// ═══════════════════════════════════════════════════════════
+const WX_CODE = {
+  0:'☀️ Ciel dégagé', 1:'🌤 Peu nuageux', 2:'⛅ Partiellement nuageux', 3:'☁️ Couvert',
+  45:'🌫 Brouillard', 48:'🌫 Brouillard givrant',
+  51:'🌦 Bruine légère', 53:'🌦 Bruine', 55:'🌧 Bruine dense',
+  61:'🌧 Pluie légère', 63:'🌧 Pluie', 65:'🌧 Pluie forte',
+  71:'🌨 Neige légère', 73:'🌨 Neige', 75:'❄️ Neige forte',
+  80:'🌦 Averses légères', 81:'🌧 Averses', 82:'⛈ Averses fortes',
+  95:'⛈ Orage', 96:'⛈ Orage avec grêle', 99:'⛈ Orage violent',
+};
+const WX_ICON = {
+  0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',
+  51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',
+  71:'🌨',73:'🌨',75:'❄️',80:'🌦',81:'🌧',82:'⛈',
+  95:'⛈',96:'⛈',99:'⛈',
+};
+const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+let wxData = null;
+
+async function fetchWeather(lat, lng) {
+  document.getElementById('weather-loading').style.display = 'flex';
+  document.getElementById('weather-data').style.display = 'none';
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weathercode,uv_index,precipitation&hourly=temperature_2m,weathercode,precipitation_probability&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,uv_index_max&timezone=auto&forecast_days=7`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error();
+    wxData = await r.json();
+    renderWeatherWidget(wxData);
+  } catch(e) {
+    document.getElementById('weather-loading').style.display = 'none';
+    document.getElementById('weather-data').style.display = 'none';
+  }
+}
+
+function renderWeatherWidget(d) {
+  const c = d.current;
+  const code = c.weathercode;
+  document.getElementById('wx-icon').textContent = WX_ICON[code] || '🌡️';
+  document.getElementById('wx-temp').textContent = Math.round(c.temperature_2m) + '°';
+  document.getElementById('wx-desc').textContent = (WX_CODE[code] || '').replace(/^.+?\s/,'');
+  document.getElementById('wx-feels').textContent = `Ressenti ${Math.round(c.apparent_temperature)}°`;
+  document.getElementById('wx-wind').textContent = `💨 ${Math.round(c.wind_speed_10m)} km/h`;
+  document.getElementById('wx-rain').textContent = `🌧 ${c.precipitation} mm`;
+  document.getElementById('weather-loading').style.display = 'none';
+  document.getElementById('weather-data').style.display = 'block';
+  // Add click to open panel
+  document.getElementById('weather-widget').onclick = openWeather;
+}
+
+function openWeather() {
+  if (!wxData || !city) return;
+  const c = wxData.current;
+  const code = c.weathercode;
+  document.getElementById('wx-panel-city').textContent = `${city.flag} ${city.name}`;
+  document.getElementById('wx-panel-icon').textContent = WX_ICON[code] || '🌡️';
+  document.getElementById('wx-panel-temp').textContent = Math.round(c.temperature_2m) + '°C';
+  document.getElementById('wx-panel-desc').textContent = WX_CODE[code] || '—';
+  document.getElementById('wxp-feels').textContent = Math.round(c.apparent_temperature) + '°C';
+  document.getElementById('wxp-hum').textContent = c.relative_humidity_2m + '%';
+  document.getElementById('wxp-wind').textContent = Math.round(c.wind_speed_10m) + ' km/h';
+  document.getElementById('wxp-uv').textContent = Math.round(c.uv_index ?? 0);
+
+  // 7-day forecast
+  const fc = document.getElementById('wx-forecast'); fc.innerHTML = '';
+  const daily = wxData.daily;
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(daily.time[i]);
+    const div = document.createElement('div'); div.className = 'wx-day';
+    div.innerHTML = `<div class="wx-day-name">${i === 0 ? 'Auj.' : DAYS_FR[date.getDay()]}</div>
+      <div class="wx-day-icon">${WX_ICON[daily.weathercode[i]] || '🌡️'}</div>
+      <div class="wx-day-max">${Math.round(daily.temperature_2m_max[i])}°</div>
+      <div class="wx-day-min">${Math.round(daily.temperature_2m_min[i])}°</div>
+      <div class="wx-day-rain">${(daily.precipitation_sum[i] || 0).toFixed(1)}mm</div>`;
+    fc.appendChild(div);
+  }
+
+  // Hourly (next 24h)
+  const hourly = document.getElementById('wx-hourly'); hourly.innerHTML = '';
+  const now = new Date();
+  const hours = wxData.hourly;
+  let count = 0;
+  for (let i = 0; i < hours.time.length && count < 24; i++) {
+    const t = new Date(hours.time[i]);
+    if (t < now) continue;
+    count++;
+    const div = document.createElement('div'); div.className = 'wx-hour';
+    div.innerHTML = `<div class="wx-hour-time">${String(t.getHours()).padStart(2,'0')}h</div>
+      <div class="wx-hour-icon">${WX_ICON[hours.weathercode[i]] || '🌡️'}</div>
+      <div class="wx-hour-temp">${Math.round(hours.temperature_2m[i])}°</div>
+      <div class="wx-hour-rain">${hours.precipitation_probability[i] || 0}%</div>`;
+    hourly.appendChild(div);
+  }
+
+  document.getElementById('weather-panel').classList.add('open');
+  document.getElementById('weather-overlay').classList.add('show');
+}
+
+function closeWeather() {
+  document.getElementById('weather-panel').classList.remove('open');
+  document.getElementById('weather-overlay').classList.remove('show');
 }
 
 buildCitySelect();
