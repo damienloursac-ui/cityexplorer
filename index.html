@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>World Explorer</title>
+<title>CityExplorer</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -13,7 +13,7 @@ body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;o
 /* ══ CITY SELECT ══ */
 #city-select{position:fixed;inset:0;background:var(--dark);z-index:300;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
 #city-select.hidden{display:none}
-.cs-header{padding:3rem 1.5rem 1rem}
+.cs-header{padding:2rem 1.5rem 0.5rem}
 .cs-logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:.08em;line-height:1}
 .cs-logo span{color:var(--accent)}
 .cs-tagline{font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(240,237,232,.38);margin-top:.35rem}
@@ -230,12 +230,32 @@ body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;o
 <!-- CITY SELECT -->
 <div id="city-select">
   <div class="cs-header">
-    <div class="cs-logo">World <span>Explorer</span></div>
-    <div class="cs-tagline">Guide de voyage · 5 métropoles mondiales</div>
+    <svg width="100%" viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg" style="max-width:480px;display:block">
+      <!-- Globe -->
+      <circle cx="110" cy="105" r="62" fill="none" stroke="#FFD166" stroke-width="2"/>
+      <ellipse cx="110" cy="105" rx="29" ry="62" fill="none" stroke="#FFD166" stroke-width="1.2" opacity="0.5"/>
+      <line x1="48" y1="105" x2="172" y2="105" stroke="#FFD166" stroke-width="1.2" opacity="0.5"/>
+      <line x1="57" y1="77"  x2="163" y2="77"  stroke="#FFD166" stroke-width="1"   opacity="0.3"/>
+      <line x1="57" y1="133" x2="163" y2="133" stroke="#FFD166" stroke-width="1"   opacity="0.3"/>
+      <!-- Points villes -->
+      <circle cx="92"  cy="92"  r="4"   fill="#FFD166"/>
+      <circle cx="127" cy="103" r="4"   fill="#FFD166"/>
+      <circle cx="107" cy="118" r="4"   fill="#FFD166"/>
+      <circle cx="120" cy="86"  r="2.8" fill="#FFD166" opacity="0.7"/>
+      <circle cx="96"  cy="127" r="2.5" fill="#FFD166" opacity="0.6"/>
+      <!-- Épingle -->
+      <circle cx="110" cy="48" r="9" fill="#FFD166"/>
+      <line x1="110" y1="57" x2="110" y2="75" stroke="#FFD166" stroke-width="2.8" stroke-linecap="round"/>
+      <!-- Texte -->
+      <text x="192" y="93"  font-family="'Bebas Neue', 'Arial Black', sans-serif" font-size="48" fill="#FFD166" letter-spacing="3">CITY</text>
+      <text x="194" y="130" font-family="'DM Sans', Arial, sans-serif" font-size="21" fill="#ffffff" letter-spacing="9" font-weight="300">EXPLORER</text>
+      <line x1="194" y1="139" x2="590" y2="139" stroke="#FFD166" stroke-width="1" opacity="0.4"/>
+      <text x="194" y="157" font-family="'DM Sans', Arial, sans-serif" font-size="12" fill="#FFD166" opacity="0.55" letter-spacing="1.8">Explore le monde en toute simplicité</text>
+    </svg>
   </div>
   <div class="cs-sep">Choisissez votre destination</div>
   <div id="city-list"></div>
-  <div class="cs-footer">Itinéraires optimisés · Photos · Plans 5 jours</div>
+  <div class="cs-footer">CityExplorer · Itinéraires · Sports · Plans 5 jours</div>
 </div>
 
 <!-- APP -->
