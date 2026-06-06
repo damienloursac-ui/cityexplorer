@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>World Explorer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#FFD166;--dark:#0A0A0F;--glass:rgba(10,10,15,.88);--text:#F0EDE8;--accent:#FFD166}
+body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;height:100dvh;width:100vw;user-select:none;-webkit-user-select:none}
+
+/* ══ CITY SELECT ══ */
+#city-select{position:fixed;inset:0;background:var(--dark);z-index:300;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#city-select.hidden{display:none}
+.cs-header{padding:3rem 1.5rem 1rem}
+.cs-logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:.08em;line-height:1}
+.cs-logo span{color:var(--accent)}
+.cs-tagline{font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(240,237,232,.38);margin-top:.35rem}
+.cs-sep{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(240,237,232,.28);padding:.9rem 1.5rem .4rem}
+.city-card{display:flex;align-items:center;gap:1.1rem;padding:1rem 1.5rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .18s}
+.city-card:active{background:rgba(255,255,255,.06)}
+.city-flag{font-size:2.4rem;flex-shrink:0}
+.city-info{flex:1;min-width:0}
+.city-name{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.05em;line-height:1}
+.city-country{font-size:.66rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(240,237,232,.38);margin-top:.1rem}
+.city-meta{display:flex;gap:.4rem;margin-top:.4rem;flex-wrap:wrap}
+.city-tag{font-size:.58rem;padding:.12rem .48rem;border-radius:3px;border:1px solid;letter-spacing:.07em}
+.city-arrow{font-size:1.2rem;color:rgba(240,237,232,.25)}
+.cs-footer{padding:2rem 1.5rem;text-align:center;font-size:.62rem;color:rgba(240,237,232,.2);letter-spacing:.1em;text-transform:uppercase}
+
+/* ══ APP SHELL ══ */
+#app{position:fixed;inset:0;display:none;flex-direction:column}
+#app.active{display:flex}
+#loading{position:absolute;inset:0;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:50;transition:opacity .5s}
+#loading.done{opacity:0;pointer-events:none}
+.loader-ring{width:48px;height:48px;border:2px solid rgba(255,209,102,.15);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(240,237,232,.38)}
+
+/* ══ TOP BAR ══ */
+#top-bar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.2rem .7rem;background:var(--dark);border-bottom:1px solid rgba(255,255,255,.06)}
+.top-city-btn{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.3rem .7rem .3rem .3rem;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);transition:background .18s}
+.top-city-btn:active{background:rgba(255,255,255,.08)}
+.top-flag{font-size:1.5rem}
+.top-city-name{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;color:var(--accent)}
+.top-change{font-size:.56rem;color:rgba(240,237,232,.35);letter-spacing:.1em;text-transform:uppercase}
+.top-bar-count{text-align:right}
+.top-count-num{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent)}
+.top-count-lbl{font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,237,232,.38)}
+
+/* ══ BOTTOM NAV ══ */
+#bottom-nav{flex-shrink:0;display:flex;background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);padding-bottom:env(safe-area-inset-bottom,0)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.6rem 0 .5rem;background:none;border:none;cursor:pointer;color:rgba(240,237,232,.35);transition:color .18s;gap:.1rem}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{font-size:1.25rem}
+.nav-label{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase}
+
+/* ══ SCREENS ══ */
+.screen{flex:1;overflow:hidden;display:none;flex-direction:column;min-height:0}
+.screen.active{display:flex}
+.screen-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* ══ SEARCH ══ */
+.search-wrap{padding:.75rem 1.2rem;flex-shrink:0;background:var(--dark)}
+.search-wrap input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.6rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none}
+.search-wrap input::placeholder{color:rgba(240,237,232,.28)}
+.search-wrap input:focus{border-color:var(--accent)}
+
+/* ══ MONUMENT CARDS ══ */
+.monument-grid{padding:.4rem 1.2rem 5rem;display:flex;flex-direction:column;gap:.75rem}
+
+/* Featured (first) */
+.mc-featured{border-radius:14px;overflow:hidden;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);transition:border-color .18s;position:relative}
+.mc-featured:active{border-color:var(--accent)}
+.mc-featured-photo{width:100%;height:200px;position:relative;background:#111;overflow:hidden;flex-shrink:0}
+.mc-featured-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s;opacity:0}
+.mc-featured-photo img.ok{opacity:1}
+.mc-featured-photo .ef{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.3;background:linear-gradient(135deg,#1a2640,#0a1020)}
+.mc-featured-body{padding:.9rem 1rem}
+.mc-featured-name{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.04em;color:var(--text);line-height:1.05}
+.mc-featured-hood{font-size:.65rem;color:rgba(240,237,232,.4);margin:.15rem 0 .5rem;letter-spacing:.08em}
+.mc-featured-tags{display:flex;gap:.35rem;flex-wrap:wrap}
+.mc-tag{font-size:.58rem;padding:.12rem .4rem;border-radius:3px;background:rgba(255,209,102,.1);color:var(--accent);border:1px solid rgba(255,209,102,.22)}
+.mc-featured-gmap{position:absolute;top:.65rem;right:.65rem;font-size:.72rem;background:rgba(10,10,15,.75);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:.2rem .42rem;cursor:pointer}
+
+/* Regular card */
+.mc-card{display:flex;gap:0;border-radius:14px;overflow:hidden;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);transition:border-color .18s;position:relative}
+.mc-card:active{border-color:var(--accent)}
+.mc-card-photo{width:90px;height:90px;flex-shrink:0;position:relative;background:#111;overflow:hidden}
+.mc-card-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s;opacity:0}
+.mc-card-photo img.ok{opacity:1}
+.mc-card-photo .ef{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.5rem;opacity:.4;background:linear-gradient(135deg,#1a2640,#0a1020)}
+.mc-card-body{flex:1;padding:.7rem .9rem;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.mc-card-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.04em;color:var(--text);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-card-hood{font-size:.62rem;color:rgba(240,237,232,.38);margin-top:.08rem}
+.mc-card-tags{display:flex;gap:.32rem;margin-top:.4rem;flex-wrap:wrap}
+.mc-card-gmap{position:absolute;top:.5rem;right:.5rem;font-size:.7rem;background:rgba(10,10,15,.75);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:.16rem .36rem;cursor:pointer}
+
+/* Shimmer */
+.shimmer{position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.07) 50%,transparent 100%);background-size:200% 100%;animation:sh 1.4s infinite}
+@keyframes sh{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ══ DETAIL PANEL ══ */
+#detail-panel{position:fixed;bottom:0;left:0;right:0;background:rgba(11,11,17,.97);backdrop-filter:blur(30px);border-top:1px solid rgba(255,209,102,.15);border-radius:20px 20px 0 0;padding:0 1.4rem calc(56px + 1.5rem);transform:translateY(100%);transition:transform .38s cubic-bezier(.32,.72,0,1);z-index:100;overflow-y:auto;max-height:92vh}
+#detail-panel.open{transform:translateY(0)}
+.panel-handle{width:36px;height:4px;background:rgba(240,237,232,.18);border-radius:2px;margin:.85rem auto .4rem}
+#close-panel{position:absolute;top:.85rem;right:1rem;z-index:20;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;color:var(--text)}
+#dp-photo-wrap{position:relative;width:calc(100% + 2.8rem);margin:0 -1.4rem 1.1rem;height:200px;overflow:hidden;border-radius:16px 16px 0 0;background:#111}
+#dp-photo-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s;opacity:0}
+#dp-photo-wrap img.ok{opacity:1}
+#dp-photo-wrap .ef{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.3;background:linear-gradient(135deg,#1a2640,#0a0a0f)}
+#dp-photo-wrap .shimmer{z-index:1}
+#dp-grad{position:absolute;bottom:0;left:0;right:0;height:70px;background:linear-gradient(to bottom,transparent,rgba(11,11,17,.97));pointer-events:none;z-index:2}
+#dp-badge{position:absolute;bottom:.7rem;right:.7rem;width:40px;height:40px;background:rgba(10,10,15,.75);backdrop-filter:blur(10px);border-radius:50%;border:1px solid rgba(255,209,102,.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;z-index:3}
+.p-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.03em;color:var(--accent);line-height:1}
+.p-hood{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(240,237,232,.38);margin-top:.2rem}
+.p-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin:.65rem 0}
+.tag{font-size:.63rem;letter-spacing:.07em;text-transform:uppercase;padding:.2rem .52rem;border:1px solid rgba(240,237,232,.14);border-radius:2px;color:rgba(240,237,232,.48)}
+.tag.hl{border-color:var(--accent);color:var(--accent)}
+.p-desc{font-size:.83rem;line-height:1.65;color:rgba(240,237,232,.7);margin-bottom:1rem}
+.p-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1.2rem}
+.stat{text-align:center;padding:.65rem;background:rgba(255,255,255,.04);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--accent)}
+.stat-label{font-size:.58rem;color:rgba(240,237,232,.38);letter-spacing:.1em;text-transform:uppercase;margin-top:.1rem}
+.p-actions{display:flex;gap:.6rem}
+.btn-pri{flex:1;background:var(--accent);color:var(--dark);border:none;padding:.8rem;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.08em;border-radius:6px;cursor:pointer}
+.btn-sec{background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.1);padding:.8rem 1rem;border-radius:6px;cursor:pointer}
+
+/* ══ ITINERARY ══ */
+.cfg-inner{padding:1.3rem 1.2rem .8rem}
+.screen-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.05em;line-height:1}
+.screen-title span{color:var(--accent)}
+.screen-sub{font-size:.7rem;color:rgba(240,237,232,.35);letter-spacing:.15em;text-transform:uppercase;margin:.25rem 0 1.4rem}
+.cfg-label{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(240,237,232,.42);margin-bottom:.6rem}
+.cfg-sec{margin-bottom:1.2rem}
+.pill-row{display:flex;gap:.38rem;flex-wrap:wrap}
+.pill{padding:.35rem .72rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;color:rgba(240,237,232,.45);font-size:.74rem;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif}
+.pill.active{background:rgba(255,209,102,.12);border-color:var(--accent);color:var(--accent)}
+.day-row{display:flex;gap:.4rem}
+.day-pill{flex:1;padding:.52rem .2rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:rgba(240,237,232,.45);font-size:.76rem;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;text-align:center}
+.day-pill.active{background:rgba(255,209,102,.12);border-color:var(--accent);color:var(--accent)}
+.gen-btn{width:100%;padding:.9rem;background:var(--accent);border:none;border-radius:10px;color:var(--dark);font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.08em;cursor:pointer;margin-top:.4rem;transition:opacity .15s,transform .15s}
+.gen-btn:active{opacity:.85;transform:scale(.98)}
+.result-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.2rem .4rem;position:sticky;top:0;background:var(--dark);z-index:2;border-bottom:1px solid rgba(255,255,255,.05)}
+.result-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.05em;color:var(--accent)}
+.back-btn,.share-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.32rem .62rem;color:var(--text);font-size:.76rem;cursor:pointer;font-family:'DM Sans',sans-serif}
+.chips-row{display:flex;gap:.38rem;padding:.6rem 1.2rem;overflow-x:auto;scrollbar-width:none}
+.chips-row::-webkit-scrollbar{display:none}
+.chip{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:.22rem .72rem;font-size:.66rem;color:rgba(240,237,232,.52);white-space:nowrap}
+.chip span{color:var(--accent);font-weight:500}
+.day-block{margin:0 1.2rem 1.2rem}
+.day-hdr-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem}
+.day-badge{font-family:'Bebas Neue',sans-serif;font-size:.66rem;letter-spacing:.18em;color:var(--dark);background:var(--accent);padding:.16rem .52rem;border-radius:3px}
+.day-theme-lbl{font-size:.7rem;color:rgba(240,237,232,.4);letter-spacing:.1em;text-transform:uppercase}
+
+/* ══ STOP CARDS ══ */
+.stop-card{display:flex;gap:.6rem;padding:.65rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;margin-bottom:.42rem;cursor:pointer;transition:border-color .18s;position:relative}
+.stop-card:active{background:rgba(255,255,255,.06)}
+.stop-tl{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:30px}
+.stop-time{font-size:.58rem;color:var(--accent);font-weight:500;white-space:nowrap}
+.stop-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin:.25rem 0;flex-shrink:0}
+.stop-line{flex:1;width:2px;background:linear-gradient(to bottom,rgba(255,209,102,.3),transparent);min-height:14px}
+.stop-thumb{width:58px;height:58px;border-radius:9px;flex-shrink:0;overflow:hidden;position:relative;background:#111}
+.stop-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .4s;opacity:0}
+.stop-thumb img.ok{opacity:1}
+.stop-thumb .ef{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;opacity:.5}
+.stop-info{flex:1;min-width:0}
+.stop-name{font-family:'Bebas Neue',sans-serif;font-size:.92rem;color:var(--text);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stop-hood{font-size:.6rem;color:rgba(240,237,232,.36);margin-top:.07rem}
+.stop-meta{display:flex;gap:.32rem;margin-top:.28rem;flex-wrap:wrap}
+.sb{font-size:.57rem;padding:.12rem .36rem;border-radius:3px;background:rgba(255,209,102,.1);color:var(--accent);border:1px solid rgba(255,209,102,.2)}
+.sb.g{background:rgba(255,255,255,.04);color:rgba(240,237,232,.4);border-color:rgba(255,255,255,.07)}
+.stop-tip{margin-top:.3rem;font-size:.66rem;color:rgba(240,237,232,.45);font-style:italic;line-height:1.4}
+.stop-gmap{position:absolute;top:.5rem;right:.5rem;font-size:.7rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:5px;padding:.15rem .35rem;cursor:pointer}
+.gmaps-blk{padding:.4rem 1.2rem 1.3rem}
+.btn-gfull{width:100%;padding:.82rem;background:rgba(66,133,244,.14);border:1px solid rgba(66,133,244,.28);border-radius:9px;color:#7eb3ff;font-size:.86rem;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* ══ 5-DAY ══ */
+.fiveday-top{padding:1rem 1.2rem .5rem;background:var(--dark);position:sticky;top:0;z-index:2;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.fiveday-ttl{font-family:'Bebas Neue',sans-serif;font-size:1.85rem;letter-spacing:.05em;line-height:1}
+.fiveday-ttl span{color:var(--accent)}
+.fiveday-sub2{font-size:.66rem;color:rgba(240,237,232,.35);letter-spacing:.14em;text-transform:uppercase;margin-top:.22rem}
+.fiveday-chips2{display:flex;gap:.38rem;margin-top:.6rem;overflow-x:auto;scrollbar-width:none;padding-bottom:.12rem}
+.fiveday-chips2::-webkit-scrollbar{display:none}
+.fd-chip{background:rgba(255,209,102,.1);border:1px solid rgba(255,209,102,.22);border-radius:18px;padding:.22rem .72rem;font-size:.66rem;color:var(--accent);white-space:nowrap}
+.day-tabs-strip{display:flex;gap:.32rem;padding:.5rem 1.2rem;overflow-x:auto;scrollbar-width:none;flex-shrink:0;background:rgba(10,10,15,.6);border-bottom:1px solid rgba(255,255,255,.05)}
+.day-tabs-strip::-webkit-scrollbar{display:none}
+.day-tab-btn{padding:.32rem .85rem;border-radius:18px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(240,237,232,.42);font-size:.72rem;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .18s}
+.day-tab-btn.active{background:var(--accent);border-color:var(--accent);color:var(--dark);font-weight:600}
+.fiveday-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 1.2rem 1.4rem}
+.day-card-hdr{margin:.9rem 0;padding:.85rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px}
+.day-color-bar{height:3px;border-radius:2px;margin-bottom:.6rem}
+.day-card-title{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:.04em}
+.day-card-sub{font-size:.66rem;color:rgba(240,237,232,.4);margin-top:.16rem;letter-spacing:.1em;text-transform:uppercase}
+
+/* ══ SPORTS ══ */
+.sports-header{padding:1.1rem 1.2rem .5rem;background:var(--dark);position:sticky;top:0;z-index:2;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.sports-ttl{font-family:'Bebas Neue',sans-serif;font-size:1.85rem;letter-spacing:.05em;line-height:1}
+.sports-ttl span{color:var(--accent)}
+.sports-sub{font-size:.66rem;color:rgba(240,237,232,.35);letter-spacing:.14em;text-transform:uppercase;margin-top:.22rem}
+.sport-tabs{display:flex;gap:.35rem;padding:.55rem 1.2rem;overflow-x:auto;scrollbar-width:none;flex-shrink:0;background:rgba(10,10,15,.6);border-bottom:1px solid rgba(255,255,255,.05)}
+.sport-tabs::-webkit-scrollbar{display:none}
+.sport-tab{padding:.32rem .9rem;border-radius:18px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(240,237,232,.42);font-size:.72rem;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .18s}
+.sport-tab.active{background:var(--accent);border-color:var(--accent);color:var(--dark);font-weight:600}
+.sports-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:.75rem 1.2rem 5rem}
+
+/* Sport section label */
+.sport-section-lbl{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(240,237,232,.3);padding:.5rem 0 .4rem;margin-top:.5rem}
+
+/* Team card */
+.team-card{display:flex;gap:0;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);margin-bottom:.75rem;position:relative;transition:border-color .18s}
+.team-card:active{border-color:var(--accent)}
+.team-card-photo{width:100px;height:100px;flex-shrink:0;position:relative;background:#111;overflow:hidden}
+.team-card-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s;opacity:0}
+.team-card-photo img.ok{opacity:1}
+.team-card-photo .ef{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.8rem;opacity:.45}
+.team-card-photo .shimmer{position:absolute;inset:0}
+.team-card-body{flex:1;padding:.8rem 1rem;min-width:0}
+.team-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.04em;color:var(--text);line-height:1.1}
+.team-league{font-size:.62rem;color:rgba(240,237,232,.4);margin-top:.1rem;letter-spacing:.08em}
+.team-desc{font-size:.72rem;color:rgba(240,237,232,.6);margin-top:.35rem;line-height:1.5}
+.team-tags{display:flex;gap:.32rem;margin-top:.45rem;flex-wrap:wrap}
+.team-tag{font-size:.57rem;padding:.1rem .38rem;border-radius:3px;background:rgba(255,209,102,.1);color:var(--accent);border:1px solid rgba(255,209,102,.2)}
+.team-color-bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+</style>
+</head>
+<body>
+
+<!-- CITY SELECT -->
+<div id="city-select">
+  <div class="cs-header">
+    <div class="cs-logo">World <span>Explorer</span></div>
+    <div class="cs-tagline">Guide de voyage · 5 métropoles mondiales</div>
+  </div>
+  <div class="cs-sep">Choisissez votre destination</div>
+  <div id="city-list"></div>
+  <div class="cs-footer">Itinéraires optimisés · Photos · Plans 5 jours</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="loading"><div class="loader-ring"></div><div class="loader-text" id="loading-text">Chargement…</div></div>
+
+  <div id="top-bar">
+    <div class="top-city-btn" onclick="goHome()">
+      <span class="top-flag" id="top-flag">🗽</span>
+      <div><div class="top-city-name" id="top-city-name">NYC</div><div class="top-change">changer ↗</div></div>
+    </div>
+    <div class="top-bar-count"><div class="top-count-num" id="top-count">—</div><div class="top-count-lbl">monuments</div></div>
+  </div>
+
+  <!-- MONUMENTS -->
+  <div id="monuments-screen" class="screen active">
+    <div class="search-wrap">
+      <input type="text" id="search-input" placeholder="🔍  Rechercher un monument…" oninput="filterMonuments(this.value)">
+    </div>
+    <div class="screen-body" id="monuments-body"></div>
+  </div>
+
+  <!-- ITINERARY -->
+  <div id="itin-screen" class="screen">
+    <div id="itin-cfg" class="screen-body">
+      <div class="cfg-inner">
+        <div class="screen-title">Itinéraire <span id="itin-city-name">NYC</span></div>
+        <div class="screen-sub">Parcours optimisé sur-mesure</div>
+        <div class="cfg-sec"><div class="cfg-label">⏱ Combien de jours ?</div>
+          <div class="day-row">
+            <button class="day-pill active" data-d="1" onclick="selDays(1)">1 jour</button>
+            <button class="day-pill" data-d="2" onclick="selDays(2)">2 jours</button>
+            <button class="day-pill" data-d="3" onclick="selDays(3)">3 jours</button>
+            <button class="day-pill" data-d="5" onclick="selDays(5)">5 jours</button>
+          </div>
+        </div>
+        <div class="cfg-sec"><div class="cfg-label">🎯 Centres d'intérêt</div><div class="pill-row" id="interest-pills"></div></div>
+        <div class="cfg-sec"><div class="cfg-label">🚶 Déplacement</div>
+          <div class="pill-row">
+            <button class="pill active" data-m="walking" onclick="selTrans(this)">🚶 Marche</button>
+            <button class="pill" data-m="transit" onclick="selTrans(this)">🚇 Métro</button>
+            <button class="pill" data-m="driving" onclick="selTrans(this)">🚕 Taxi</button>
+          </div>
+        </div>
+        <button class="gen-btn" onclick="generateItin()">✨ Générer mon parcours</button>
+      </div>
+    </div>
+    <div id="itin-res" class="screen-body" style="display:none">
+      <div class="result-hdr">
+        <button class="back-btn" onclick="showCfg()">← Modifier</button>
+        <div class="result-title" id="res-title">Itinéraire</div>
+        <button class="share-btn" onclick="exportItin()">📤</button>
+      </div>
+      <div class="chips-row" id="res-chips"></div>
+      <div id="res-days"></div>
+      <div class="gmaps-blk"><button class="btn-gfull" onclick="openFullRoute()">📍 Ouvrir dans Google Maps</button></div>
+    </div>
+  </div>
+
+  <!-- 5-DAY -->
+  <div id="five-screen" class="screen" style="flex-direction:column">
+    <div class="fiveday-top">
+      <div class="fiveday-ttl">5 Jours à <span id="five-city-name">NYC</span></div>
+      <div class="fiveday-sub2" id="five-sub">Parcours optimisé</div>
+      <div class="fiveday-chips2">
+        <div class="fd-chip">🎯 Par quartier</div>
+        <div class="fd-chip">⏱ Horaires inclus</div>
+        <div class="fd-chip">💡 Conseils locaux</div>
+        <div class="fd-chip">📍 Maps inclus</div>
+      </div>
+    </div>
+    <div class="day-tabs-strip" id="day-tabs-strip"></div>
+    <div class="fiveday-body" id="fiveday-body"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <button class="nav-btn active" id="nav-monuments" onclick="switchTab('monuments')"><span class="nav-icon">🏛️</span><span class="nav-label">Monuments</span></button>
+    <button class="nav-btn" id="nav-itin" onclick="switchTab('itin')"><span class="nav-icon">🗺️</span><span class="nav-label">Itinéraire</span></button>
+    <button class="nav-btn" id="nav-five" onclick="switchTab('five')"><span class="nav-icon">📅</span><span class="nav-label">5 Jours</span></button>
+    <button class="nav-btn" id="nav-sports" onclick="switchTab('sports')"><span class="nav-icon">🏆</span><span class="nav-label">Sports</span></button>
+  </div>
+
+  <!-- SPORTS SCREEN -->
+  <div id="sports-screen" class="screen" style="flex-direction:column">
+    <div class="sports-header">
+      <div class="sports-ttl">Sports à <span id="sports-city-name">NYC</span></div>
+      <div class="sports-sub" id="sports-sub">Équipes professionnelles · Stades mythiques</div>
+    </div>
+    <div class="sport-tabs" id="sport-tabs"></div>
+    <div class="sports-body" id="sports-body"></div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div id="detail-panel">
+    <div class="panel-handle"></div>
+    <button id="close-panel" onclick="closePanel()">✕</button>
+    <div id="dp-photo-wrap">
+      <div class="shimmer" id="dp-shimmer"></div>
+      <img id="dp-img" src="" alt=""/>
+      <div class="ef" id="dp-ef" style="display:none"></div>
+      <div id="dp-grad"></div>
+      <div id="dp-badge"><span id="dp-emoji">🗽</span></div>
+    </div>
+    <div class="p-title" id="p-name"></div>
+    <div class="p-hood" id="p-hood"></div>
+    <div class="p-tags" id="p-tags"></div>
+    <p class="p-desc" id="p-desc"></p>
+    <div class="p-stats">
+      <div class="stat"><div class="stat-val" id="p-h">—</div><div class="stat-label">Hauteur</div></div>
+      <div class="stat"><div class="stat-val" id="p-yr">—</div><div class="stat-label">Inauguré</div></div>
+      <div class="stat"><div class="stat-val" id="p-tag1">—</div><div class="stat-label">Catégorie</div></div>
+    </div>
+    <div class="p-actions">
+      <button class="btn-pri" onclick="openMaps()">📍 Google Maps</button>
+      <button class="btn-sec" onclick="closePanel()">✕</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  PHOTO HELPER
+//  Uses Wikipedia REST API thumbnail — no CORS, always works
+// ═══════════════════════════════════════════════════════════
+const PHOTO_CACHE = {};
+
+async function fetchWikiPhoto(title, width = 600) {
+  if (PHOTO_CACHE[title]) return PHOTO_CACHE[title];
+  try {
+    const lang = title.startsWith('fr:') ? 'fr' : 'en';
+    const t = title.replace(/^(fr|en):/, '');
+    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    const src = d.thumbnail?.source || d.originalimage?.source || null;
+    PHOTO_CACHE[title] = src;
+    return src;
+  } catch {
+    PHOTO_CACHE[title] = null;
+    return null;
+  }
+}
+
+function loadImg(imgEl, shimEl, efEl, emoji, wikiTitle) {
+  if (!wikiTitle) { shimEl.style.display='none'; efEl.textContent=emoji; efEl.style.display='flex'; return; }
+  fetchWikiPhoto(wikiTitle).then(src => {
+    shimEl.style.display = 'none';
+    if (!src) { efEl.textContent=emoji; efEl.style.display='flex'; return; }
+    imgEl.onload  = () => imgEl.classList.add('ok');
+    imgEl.onerror = () => { imgEl.style.display='none'; efEl.textContent=emoji; efEl.style.display='flex'; };
+    imgEl.src = src;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CITIES DATA  (wiki = Wikipedia article title for thumbnail)
+// ═══════════════════════════════════════════════════════════
+const CITIES = {
+
+  nyc: { name:'New York', short:'NYC', flag:'🗽', country:'États-Unis', color:'#FFD166',
+    tags:['Art déco','Musée','Observatoire','Nature','Gratuit','Gastronomie','Histoire','Art'],
+    landmarks:[
+      {id:'empire',    e:'🏙️', n:'Empire State Building',    hood:'Midtown Manhattan',  desc:"Construit en 410 jours, le plus haut gratte-ciel du monde pendant 40 ans. Observatoire au 86e étage avec vue à 360°.",                              tags:['Art déco','Observatoire'], h:'443 m', yr:'1931', lat:40.7484,lng:-73.9967, g:'https://maps.google.com/?q=Empire+State+Building',          wiki:'Empire_State_Building'},
+      {id:'timessq',   e:'⭐',  n:'Times Square',              hood:'Midtown Manhattan',  desc:"Le carrefour du monde. Panneaux LED géants et énergie permanente — 50 millions de visiteurs par an.",                                             tags:['Gratuit','24h/24'],       h:'—',     yr:'1904', lat:40.7580,lng:-73.9855, g:'https://maps.google.com/?q=Times+Square+New+York',           wiki:'Times_Square'},
+      {id:'brooklyn',  e:'🌉', n:'Brooklyn Bridge',            hood:'Lower Manhattan',    desc:"Chef-d'œuvre du XIXe siècle. Promenade piétonne avec la vue parfaite sur le skyline de Manhattan.",                                               tags:['À pied','Gratuit'],       h:'84 m',  yr:'1883', lat:40.7061,lng:-73.9969, g:'https://maps.google.com/?q=Brooklyn+Bridge+New+York',          wiki:'Brooklyn_Bridge'},
+      {id:'centralpark',e:'🌳',n:'Central Park',               hood:'Upper West Side',    desc:"843 acres de nature au cœur de Manhattan — le poumon vert pour 42 millions de visiteurs annuels.",                                               tags:['Gratuit','Nature'],       h:'—',     yr:'1858', lat:40.7851,lng:-73.9683, g:'https://maps.google.com/?q=Central+Park+New+York',             wiki:'Central_Park'},
+      {id:'liberty',   e:'🗽', n:'Statue of Liberty',          hood:'Liberty Island',     desc:"Offerte par la France en 1886, symbole universel de la démocratie. 93 mètres dominant la baie de New York.",                                      tags:['UNESCO','Incontournable'],h:'93 m',  yr:'1886', lat:40.6892,lng:-74.0445, g:'https://maps.google.com/?q=Statue+of+Liberty',               wiki:'Statue_of_Liberty'},
+      {id:'wtc',       e:'🏛️', n:'One World Trade Center',     hood:'Lower Manhattan',    desc:"Le plus haut bâtiment des Amériques, symbole de renaissance. One World Observatory au 100e étage.",                                             tags:['Observatoire','Histoire'],h:'541 m', yr:'2014', lat:40.7127,lng:-74.0134, g:'https://maps.google.com/?q=One+World+Trade+Center',           wiki:'One_World_Trade_Center'},
+      {id:'met',       e:'🖼️', n:'Metropolitan Museum',        hood:'Upper East Side',    desc:"Le Met abrite 2 millions d'œuvres — 5 000 ans d'histoire de l'humanité sous un même toit.",                                                     tags:['Musée','Art'],            h:'—',     yr:'1870', lat:40.7794,lng:-73.9632, g:'https://maps.google.com/?q=Metropolitan+Museum+of+Art',        wiki:'Metropolitan_Museum_of_Art'},
+      {id:'gugge',     e:'🌀', n:'Musée Guggenheim',           hood:'Upper East Side',    desc:"Chef-d'œuvre de Frank Lloyd Wright (1959). Sa rampe spirale accueille des collections d'art moderne mondiales.",                                  tags:['Musée','Art'],            h:'28 m',  yr:'1959', lat:40.7830,lng:-73.9590, g:'https://maps.google.com/?q=Guggenheim+Museum+New+York',         wiki:'Solomon_R._Guggenheim_Museum'},
+      {id:'flatiron',  e:'🔺', n:'Flatiron Building',          hood:'Flatiron District',  desc:"Le gratte-ciel triangulaire de 1902, l'un des plus photographiés de New York.",                                                                  tags:['Art déco','Architecture'],h:'87 m',  yr:'1902', lat:40.7411,lng:-73.9897, g:'https://maps.google.com/?q=Flatiron+Building+New+York',         wiki:'Flatiron_Building'},
+      {id:'grandcen',  e:'🚂', n:'Grand Central Terminal',     hood:'Midtown East',       desc:"La plus grande gare du monde (44 voies). Plafond turquoise constellé de 2 500 étoiles dorées.",                                                  tags:['Gratuit','Architecture'], h:'—',     yr:'1913', lat:40.7527,lng:-73.9772, g:'https://maps.google.com/?q=Grand+Central+Terminal+New+York',    wiki:'Grand_Central_Terminal'},
+      {id:'highline',  e:'🌿', n:'The High Line',              hood:'Chelsea',            desc:"Ancienne voie ferrée reconvertie en parc suspendu de 2,4 km avec vue sur l'Hudson.",                                                             tags:['Gratuit','Nature'],       h:'9 m',   yr:'2009', lat:40.7480,lng:-74.0048, g:'https://maps.google.com/?q=High+Line+New+York',                   wiki:'High_Line'},
+      {id:'moma',      e:'🎨', n:'MoMA',                       hood:'Midtown Manhattan',  desc:"La plus grande collection d'art moderne au monde : Picasso, Warhol, Monet, Dalí…",                                                              tags:['Musée','Art'],            h:'—',     yr:'1929', lat:40.7614,lng:-73.9776, g:'https://maps.google.com/?q=MoMA+New+York',                           wiki:'Museum_of_Modern_Art'},
+      {id:'wallst',    e:'💹', n:'Wall Street & NYSE',         hood:'Financial District', desc:"Artère mythique de la finance mondiale. Le Charging Bull, symbole d'optimisme économique.",                                                      tags:['Histoire'],               h:'—',     yr:'1792', lat:40.7074,lng:-74.0113, g:'https://maps.google.com/?q=Wall+Street+New+York',                   wiki:'Wall_Street'},
+      {id:'dumbo',     e:'📸', n:'DUMBO',                      hood:'Brooklyn',           desc:"Le quartier le plus instagrammé de NYC. Vue iconique sur le Manhattan Bridge depuis Washington Street.",                                          tags:['Photo spot'],             h:'—',     yr:'1980', lat:40.7033,lng:-73.9881, g:'https://maps.google.com/?q=DUMBO+Brooklyn+New+York',               wiki:'DUMBO,_Brooklyn'},
+      {id:'mem911',    e:'🕊️', n:'9/11 Memorial',             hood:'Lower Manhattan',    desc:"Deux bassins réfléchissants là où se dressaient les Twin Towers. Les 2 977 noms gravés dans le bronze.",                                        tags:['Mémorial','Histoire'],    h:'—',     yr:'2011', lat:40.7115,lng:-74.0131, g:'https://maps.google.com/?q=9/11+Memorial+New+York',                wiki:'National_September_11_Memorial_%26_Museum'},
+    ],
+    plan5:[
+      {title:'Midtown & Panoramas',          theme:'🏙️ Cœur de Manhattan',        color:'#FFD166',stops:[{id:'grandcen',t:'09:00',dur:45,tip:"Levez la tête vers le plafond turquoise étoilé !"},{id:'empire',t:'10:00',dur:90,tip:"Montez avant midi pour la meilleure lumière."},{id:'timessq',t:'12:30',dur:45,tip:"Énergie maximale en journée."},{id:'moma',t:'14:00',dur:120,tip:"Cherchez les Nénuphars de Monet."},{id:'flatiron',t:'17:00',dur:30,tip:"Angle Broadway & 23rd pour la photo parfaite."}]},
+      {title:'Lower Manhattan & Brooklyn',   theme:'🌉 Histoire & Skyline',         color:'#06D6A0',stops:[{id:'mem911',t:'09:00',dur:90,tip:"Réservez les billets à l'avance."},{id:'wtc',t:'11:00',dur:90,tip:"Vue la plus haute des Amériques."},{id:'wallst',t:'13:00',dur:30,tip:"Cherchez le Charging Bull."},{id:'brooklyn',t:'15:00',dur:60,tip:"Traversez à pied depuis Manhattan."},{id:'dumbo',t:'17:00',dur:60,tip:"Washington Street — photo iconique."}]},
+      {title:'Musées & Culture',             theme:'🎨 Upper East Side',            color:'#EF233C',stops:[{id:'met',t:'09:00',dur:180,tip:"Commencez par l'Égypte antique."},{id:'gugge',t:'13:00',dur:90,tip:"Prenez l'ascenseur au sommet."},{id:'centralpark',t:'15:30',dur:120,tip:"Bethesda Fountain → Strawberry Fields."},{id:'highline',t:'18:30',dur:60,tip:"Sunset sur le High Line."}]},
+      {title:'Architecture & Parcs',         theme:'🔭 Panoramas & Verdure',        color:'#FB8500',stops:[{id:'grandcen',t:'09:00',dur:45,tip:"Intérieur Beaux-Arts."},{id:'empire',t:'11:00',dur:90,tip:"Top de Midtown."},{id:'centralpark',t:'14:00',dur:120,tip:"Vélos disponibles à la location."},{id:'highline',t:'17:00',dur:60,tip:"Promenade suspendue au coucher."}]},
+      {title:'Brooklyn & Liberty',           theme:'🗽 Âme populaire de NYC',       color:'#8338EC',stops:[{id:'liberty',t:'09:00',dur:180,tip:"Ferry depuis Battery Park — réservez !"},{id:'dumbo',t:'14:00',dur:60,tip:"Quartier des artistes."},{id:'brooklyn',t:'16:00',dur:60,tip:"Promenade au coucher du soleil."}]},
+    ]},
+
+  paris: { name:'Paris', short:'Paris', flag:'🗼', country:'France', color:'#A8DADC',
+    tags:['Architecture','Musée','Gratuit','Gastronomie','Art','Histoire','Nature'],
+    landmarks:[
+      {id:'eiffel',    e:'🗼', n:'Tour Eiffel',               hood:'Champ-de-Mars',      desc:"Construite par Gustave Eiffel en 1889. Symbole universel de Paris, 7 millions de visiteurs par an.",                                              tags:['Incontournable'],         h:'330 m', yr:'1889', lat:48.8584,lng:2.2945,  g:'https://maps.google.com/?q=Tour+Eiffel+Paris',               wiki:'Eiffel_Tower'},
+      {id:'louvre',    e:'🏛️', n:'Musée du Louvre',           hood:'1er arrondissement', desc:"Le plus grand musée du monde. La Joconde, la Vénus de Milo et la Victoire de Samothrace.",                                                      tags:['Musée','Art'],            h:'21 m',  yr:'1793', lat:48.8606,lng:2.3376,  g:'https://maps.google.com/?q=Musée+du+Louvre+Paris',            wiki:'Louvre'},
+      {id:'notredame', e:'⛪', n:'Notre-Dame de Paris',        hood:'Île de la Cité',     desc:"Joyau du gothique français. Rouverte en décembre 2024 après restauration suite à l'incendie de 2019.",                                           tags:['Histoire','Gothique'],    h:'96 m',  yr:'1345', lat:48.8530,lng:2.3499,  g:'https://maps.google.com/?q=Notre-Dame+de+Paris',               wiki:'Notre-Dame_de_Paris'},
+      {id:'montmartre',e:'🎨', n:'Sacré-Cœur & Montmartre',   hood:'18e arrondissement', desc:"La basilique domine Paris depuis la butte Montmartre, quartier bohème des impressionnistes.",                                                    tags:['Gratuit','Art'],          h:'83 m',  yr:'1914', lat:48.8867,lng:2.3431,  g:'https://maps.google.com/?q=Sacré-Cœur+Paris',                  wiki:'Sacré-Cœur,_Paris'},
+      {id:'arc',       e:'🌿', n:'Arc de Triomphe',            hood:'8e arrondissement',  desc:"L'Arc de Triomphe (1836) offre une vue époustouflante sur les 12 avenues qui rayonnent.",                                                       tags:['Incontournable'],         h:'50 m',  yr:'1836', lat:48.8738,lng:2.2950,  g:'https://maps.google.com/?q=Arc+de+Triomphe+Paris',              wiki:'Arc_de_Triomphe'},
+      {id:'orsay',     e:'🖼️', n:"Musée d'Orsay",             hood:'7e arrondissement',  desc:"L'ancienne gare abrite la plus grande collection d'impressionnistes : Monet, Renoir, Van Gogh.",                                                tags:['Musée','Art'],            h:'—',     yr:'1986', lat:48.8600,lng:2.3266,  g:"https://maps.google.com/?q=Musée+d'Orsay+Paris",               wiki:'Musée_d%27Orsay'},
+      {id:'pompidou',  e:'🏗️', n:'Centre Pompidou',            hood:'4e arrondissement',  desc:"L'architecture inside-out de Piano & Rogers (1977) abrite le Musée National d'Art Moderne.",                                                    tags:['Musée','Architecture'],   h:'42 m',  yr:'1977', lat:48.8606,lng:2.3522,  g:'https://maps.google.com/?q=Centre+Pompidou+Paris',              wiki:'Centre_Georges_Pompidou'},
+      {id:'versailles',e:'👑', n:'Château de Versailles',      hood:'Versailles (RER C)', desc:"Le château de Louis XIV. La galerie des Glaces et les jardins à la française sont incontournables.",                                            tags:['Histoire','UNESCO'],      h:'—',     yr:'1682', lat:48.8049,lng:2.1204,  g:'https://maps.google.com/?q=Château+de+Versailles',              wiki:'Palace_of_Versailles'},
+      {id:'sainteChap',e:'💎', n:'Sainte-Chapelle',            hood:'Île de la Cité',     desc:"Chef-d'œuvre du gothique rayonnant (1248). Ses 15 vitraux de 15 m de haut créent un tableau de lumière unique.",                               tags:['Histoire','Art'],         h:'42 m',  yr:'1248', lat:48.8554,lng:2.3450,  g:'https://maps.google.com/?q=Sainte-Chapelle+Paris',              wiki:'Sainte-Chapelle'},
+      {id:'marais',    e:'🏘️', n:'Le Marais & Place des Vosges',hood:'3e/4e arr.',       desc:"Le quartier historique avec la place des Vosges (1612), galeries et restaurants branchés.",                                                     tags:['Gastronomie','Art'],      h:'—',     yr:'1612', lat:48.8546,lng:2.3626,  g:'https://maps.google.com/?q=Place+des+Vosges+Paris',             wiki:'Place_des_Vosges'},
+      {id:'invalides', e:'⚔️', n:'Hôtel des Invalides',        hood:'7e arrondissement',  desc:"Le tombeau de Napoléon et le Musée de l'Armée sous le dôme doré de Jules Hardouin-Mansart.",                                                    tags:['Histoire','Musée'],       h:'107 m', yr:'1676', lat:48.8531,lng:2.3129,  g:'https://maps.google.com/?q=Invalides+Paris',                    wiki:'Les_Invalides'},
+      {id:'palaisroyal',e:'🌸',n:'Jardin du Palais Royal',     hood:'1er arrondissement', desc:"Arcades royales, colonnes de Buren et boutiques de créateurs — un havre à deux pas du Louvre.",                                                 tags:['Gratuit','Nature'],       h:'—',     yr:'1633', lat:48.8638,lng:2.3370,  g:'https://maps.google.com/?q=Palais+Royal+Paris',                 wiki:'Palais-Royal'},
+    ],
+    plan5:[
+      {title:'Tour Eiffel & Grands Monuments',theme:'🗼 Les incontournables',      color:'#A8DADC',stops:[{id:'arc',t:'09:00',dur:90,tip:"Montez à l'Arc de Triomphe tôt."},{id:'eiffel',t:'12:00',dur:120,tip:"Réservez impérativement en ligne."},{id:'invalides',t:'15:00',dur:90,tip:"Dôme doré de Napoléon."},{id:'orsay',t:'17:30',dur:90,tip:"Collection impressionniste unique."}]},
+      {title:'Louvre & Île de la Cité',       theme:'🏛️ Cœur historique',          color:'#FFD166',stops:[{id:'sainteChap',t:'09:00',dur:60,tip:"Vitraux à contre-jour le matin."},{id:'notredame',t:'10:30',dur:60,tip:"Rouverte fin 2024."},{id:'louvre',t:'12:00',dur:180,tip:"Commencez par la Joconde."},{id:'palaisroyal',t:'17:00',dur:45,tip:"Les colonnes de Buren."}]},
+      {title:'Montmartre & Marais',           theme:'🎨 Quartiers bohèmes',        color:'#EF233C',stops:[{id:'montmartre',t:'09:00',dur:120,tip:"Ruelles calmes le matin."},{id:'pompidou',t:'12:00',dur:120,tip:"Vue 360° depuis le 6e étage."},{id:'marais',t:'15:00',dur:120,tip:"Place des Vosges et galeries."}]},
+      {title:'Musées & Arts',                 theme:'🖼️ Journée culture',          color:'#06D6A0',stops:[{id:'orsay',t:'09:00',dur:150,tip:"Arrivez à l'ouverture."},{id:'pompidou',t:'13:00',dur:120,tip:"Art contemporain & vue."},{id:'louvre',t:'16:00',dur:90,tip:"Aile Richelieu moins fréquentée."}]},
+      {title:'Versailles & Sainte-Chapelle',  theme:'👑 Grandeur royale',          color:'#8338EC',stops:[{id:'versailles',t:'09:00',dur:240,tip:"RER C — réservez en ligne."},{id:'sainteChap',t:'15:00',dur:60,tip:"Vitraux en fin d'après-midi."},{id:'invalides',t:'17:00',dur:60,tip:"Ferme à 18h."}]},
+    ]},
+
+  tokyo: { name:'Tokyo', short:'Tokyo', flag:'⛩️', country:'Japon', color:'#FF6B9D',
+    tags:['Temple','Gratte-ciel','Culture','Gastronomie','Technologie','Nature','Art'],
+    landmarks:[
+      {id:'sensoji',   e:'⛩️', n:'Temple Senso-ji',           hood:'Asakusa',            desc:"Le plus ancien temple bouddhiste de Tokyo (645 ap. J.-C.). La porte Kaminarimon et ses lanternes rouges sont iconiques.",                         tags:['Temple','Histoire'],      h:'28 m',  yr:'645',  lat:35.7148,lng:139.7967, g:'https://maps.google.com/?q=Senso-ji+Tokyo',                   wiki:'Senso-ji'},
+      {id:'skytree',   e:'📡', n:'Tokyo Skytree',              hood:'Sumida',             desc:"La plus haute tour du monde (634 m). Deux plateformes d'observation à 350 m et 450 m.",                                                           tags:['Gratte-ciel','Panorama'], h:'634 m', yr:'2012', lat:35.7101,lng:139.8107, g:'https://maps.google.com/?q=Tokyo+Skytree',                   wiki:'Tokyo_Skytree'},
+      {id:'shibuya',   e:'🚦', n:'Carrefour de Shibuya',       hood:'Shibuya',            desc:"Le carrefour piéton le plus fréquenté au monde — jusqu'à 3 000 personnes simultanément.",                                                         tags:['Incontournable'],         h:'—',     yr:'1960', lat:35.6595,lng:139.7004, g:'https://maps.google.com/?q=Shibuya+Crossing+Tokyo',              wiki:'Shibuya_crossing'},
+      {id:'meiji',     e:'🌿', n:'Sanctuaire Meiji',           hood:'Harajuku',           desc:"Forêt sacrée de 70 hectares en plein cœur de Tokyo, dédiée à l'Empereur Meiji.",                                                               tags:['Nature','Spirituel'],     h:'—',     yr:'1920', lat:35.6763,lng:139.6993, g:'https://maps.google.com/?q=Meiji+Shrine+Tokyo',                  wiki:'Meiji_Shrine'},
+      {id:'shinjuku',  e:'🌃', n:'Shinjuku & Golden Gai',      hood:'Shinjuku',           desc:"Le quartier le plus animé de Tokyo : gratte-ciels, néons et mini-bars de Golden Gai.",                                                          tags:['Vie nocturne','Gastro'],  h:'—',     yr:'1885', lat:35.6938,lng:139.7036, g:'https://maps.google.com/?q=Shinjuku+Tokyo',                     wiki:'Shinjuku'},
+      {id:'akihabara', e:'🎮', n:'Akihabara Electric Town',    hood:'Akihabara',          desc:"Le temple mondial de la pop culture japonaise, des jeux vidéo et des mangas.",                                                                   tags:['Technologie','Culture'],  h:'—',     yr:'1950', lat:35.6986,lng:139.7731, g:'https://maps.google.com/?q=Akihabara+Tokyo',                    wiki:'Akihabara'},
+      {id:'harajuku',  e:'🌸', n:'Takeshita Street & Harajuku',hood:'Harajuku',           desc:"La rue de la mode alternative japonaise, des cosplays et du style Kawaii.",                                                                      tags:['Mode','Culture'],         h:'—',     yr:'1970', lat:35.6702,lng:139.7026, g:'https://maps.google.com/?q=Harajuku+Tokyo',                    wiki:'Harajuku'},
+      {id:'ueno',      e:'🏛️', n:"Parc & Musées d'Ueno",       hood:'Ueno',               desc:"Le Central Park de Tokyo avec 13 musées. Les cerisiers en avril sont spectaculaires.",                                                          tags:['Musée','Nature'],         h:'—',     yr:'1876', lat:35.7151,lng:139.7724, g:'https://maps.google.com/?q=Ueno+Park+Tokyo',                   wiki:'Ueno_Park'},
+      {id:'teamlab',   e:'🌊', n:'teamLab Borderless',         hood:'Azabudai Hills',     desc:"Le musée d'art numérique le plus innovant du monde. Salles immersives de lumière et projections interactives.",                                  tags:['Art','Technologie'],      h:'—',     yr:'2024', lat:35.6565,lng:139.7397, g:'https://maps.google.com/?q=teamLab+Borderless+Tokyo',            wiki:'TeamLab'},
+      {id:'asakusa',   e:'🏮', n:"Quartier d'Asakusa",         hood:'Asakusa',            desc:"Le quartier traditionnel de Tokyo avec ses rickshaws et la rue Nakamise menant au Senso-ji.",                                                    tags:['Culture','Gastronomie'],  h:'—',     yr:'1800', lat:35.7120,lng:139.7966, g:'https://maps.google.com/?q=Asakusa+Tokyo',                    wiki:'Asakusa'},
+      {id:'roppongi',  e:'🎭', n:'Roppongi Hills',              hood:'Roppongi',           desc:"Roppongi Hills abrite le Mori Art Museum à 52 étages avec une vue panoramique sur Tokyo.",                                                     tags:['Art','Panorama'],         h:'238 m', yr:'2003', lat:35.6604,lng:139.7292, g:'https://maps.google.com/?q=Roppongi+Hills+Tokyo',               wiki:'Roppongi_Hills'},
+      {id:'ginza',     e:'💎', n:'Ginza',                       hood:'Ginza',              desc:"Le quartier le plus luxueux de Tokyo : maisons de couture, galeries d'art et restaurants étoilés.",                                             tags:['Shopping','Art'],         h:'—',     yr:'1869', lat:35.6717,lng:139.7651, g:'https://maps.google.com/?q=Ginza+Tokyo',                      wiki:'Ginza'},
+    ],
+    plan5:[
+      {title:'Asakusa & Skytree',            theme:'⛩️ Tokyo traditionnel & moderne',color:'#FF6B9D',stops:[{id:'sensoji',t:'08:00',dur:90,tip:"Le temple est plus calme tôt le matin."},{id:'asakusa',t:'10:00',dur:60,tip:"Rue Nakamise pour les souvenirs."},{id:'skytree',t:'12:00',dur:120,tip:"Réservez en ligne."},{id:'akihabara',t:'16:00',dur:120,tip:"S'anime l'après-midi."}]},
+      {title:'Shibuya, Harajuku & Meiji',    theme:'🌸 Culture pop & nature',        color:'#FFD166',stops:[{id:'meiji',t:'09:00',dur:60,tip:"Forêt sacrée le matin."},{id:'harajuku',t:'10:30',dur:60,tip:"Takeshita Street à partir de 10h."},{id:'shibuya',t:'12:00',dur:90,tip:"Montez au Starbucks en face."},{id:'shinjuku',t:'20:00',dur:120,tip:"Golden Gai — ambiance unique."}]},
+      {title:'Ginza, Ueno & Musées',         theme:'🎨 Art & culture',               color:'#A8DADC',stops:[{id:'ginza',t:'10:00',dur:90,tip:"Galeries ouvertes à 10h."},{id:'ueno',t:'12:00',dur:150,tip:"Tokyo National Museum."},{id:'teamlab',t:'16:00',dur:120,tip:"Réservez impérativement."}]},
+      {title:'Roppongi & Shinjuku by night', theme:'🌃 Tokyo by night',               color:'#EF233C',stops:[{id:'roppongi',t:'15:00',dur:90,tip:"Mori Art Museum + vue 360°."},{id:'shinjuku',t:'19:00',dur:180,tip:"Omoide Yokocho pour les yakitori."}]},
+      {title:'Temples & Quartiers cachés',   theme:'🏮 Tokyo secret',                color:'#8338EC',stops:[{id:'sensoji',t:'07:00',dur:60,tip:"L'aube — presque désert."},{id:'asakusa',t:'09:00',dur:90,tip:"Déjeuner dans les ruelles."},{id:'harajuku',t:'14:00',dur:90,tip:"Temples cachés."},{id:'teamlab',t:'17:00',dur:120,tip:"Lumière magique en fin de journée."}]},
+    ]},
+
+  istanbul: { name:'Istanbul', short:'Istanbul', flag:'🕌', country:'Turquie', color:'#F4A261',
+    tags:['Mosquée','Palais','Bazar','Histoire','Culture','Gastronomie','UNESCO'],
+    landmarks:[
+      {id:'hagiasophia',e:'🕌',n:'Sainte-Sophie (Hagia Sophia)',hood:'Sultanahmet',      desc:"Chef-d'œuvre byzantin de 537 ap. J.-C. Le dôme de 55 m est un miracle d'ingénierie antique.",                                                    tags:['UNESCO','Histoire'],      h:'55 m',  yr:'537',  lat:41.0086,lng:28.9802, g:'https://maps.google.com/?q=Hagia+Sophia+Istanbul',              wiki:'Hagia_Sophia'},
+      {id:'bluemosque', e:'💙', n:'Mosquée Bleue (Sultan Ahmed)',hood:'Sultanahmet',      desc:"Mosquée aux six minarets (1609-1616) célèbre pour ses 21 000 carreaux de faïence turquoise d'Iznik.",                                            tags:['Mosquée','UNESCO'],       h:'43 m',  yr:'1616', lat:41.0055,lng:28.9769, g:'https://maps.google.com/?q=Blue+Mosque+Istanbul',               wiki:'Blue_Mosque,_Istanbul'},
+      {id:'topkapi',    e:'👑', n:'Palais de Topkapi',           hood:'Sultanahmet',      desc:"Résidence des sultans ottomans de 1465 à 1853. Le trésor abrite l'épée de Soliman le Magnifique.",                                              tags:['Palais','Histoire'],      h:'—',     yr:'1465', lat:41.0115,lng:28.9833, g:'https://maps.google.com/?q=Topkapi+Palace+Istanbul',             wiki:'Topkapi_Palace'},
+      {id:'grandbazar', e:'🏺', n:'Grand Bazar (Kapali Çarşı)', hood:'Beyazıt',          desc:"L'un des plus grands marchés couverts du monde — 4 000 boutiques, construit en 1461.",                                                           tags:['Bazar','Gastronomie'],    h:'—',     yr:'1461', lat:41.0107,lng:28.9680, g:'https://maps.google.com/?q=Grand+Bazaar+Istanbul',               wiki:'Grand_Bazaar,_Istanbul'},
+      {id:'bosphore',   e:'⛵', n:'Détroit du Bosphore',         hood:'Entre deux continents',desc:"Le seul détroit reliant deux continents. Croisière entre Europe et Asie avec vue sur palais et mosquées.",                                 tags:['Nature','Incontournable'],h:'—',     yr:'—',    lat:41.1077,lng:29.0537, g:'https://maps.google.com/?q=Bosphorus+Istanbul',                   wiki:'Bosphorus'},
+      {id:'cisterne',   e:'🌊', n:'Citerne Basilique',           hood:'Sultanahmet',      desc:"Citerne souterraine de Justinien (532) — 336 colonnes dans 9 800 m², l'endroit le plus mystérieux d'Istanbul.",                                  tags:['Histoire','Unique'],      h:'—',     yr:'532',  lat:41.0084,lng:28.9779, g:'https://maps.google.com/?q=Basilica+Cistern+Istanbul',              wiki:'Basilica_Cistern'},
+      {id:'galata',     e:'🗼', n:'Tour de Galata',              hood:'Galata',           desc:"Construite en 1348 par les Génois, offre la plus belle vue panoramique à 360° sur Istanbul et le Bosphore.",                                     tags:['Panorama','Histoire'],    h:'66 m',  yr:'1348', lat:41.0256,lng:28.9739, g:'https://maps.google.com/?q=Galata+Tower+Istanbul',               wiki:'Galata_Tower'},
+      {id:'beyoglu',    e:'🌃', n:'Istiklal & Beyoğlu',          hood:'Beyoğlu',          desc:"L'avenue la plus animée d'Istanbul (1,4 km) avec bars, restaurants, galeries et le célèbre tramway rouge.",                                     tags:['Gastronomie','Culture'],  h:'—',     yr:'1870', lat:41.0333,lng:28.9773, g:'https://maps.google.com/?q=Istiklal+Avenue+Istanbul',              wiki:'İstiklal_Avenue'},
+      {id:'dolmabahce', e:'🏛️', n:'Palais de Dolmabahçe',       hood:'Beşiktaş',         desc:"Le palais où mourut Atatürk. Façade de 600 m sur le Bosphore et lustre en cristal de 4,5 tonnes.",                                             tags:['Palais','Histoire'],      h:'—',     yr:'1856', lat:41.0391,lng:29.0003, g:'https://maps.google.com/?q=Dolmabahce+Palace+Istanbul',            wiki:'Dolmabahçe_Palace'},
+      {id:'bazarepicer',e:'🌶️', n:'Bazar aux Épices (Mısır)',   hood:'Eminönü',          desc:"Le Bazar Égyptien (1664) — épices, thés et douceurs orientales. L'un des bazars les plus parfumés du monde.",                                  tags:['Bazar','Gastronomie'],    h:'—',     yr:'1664', lat:41.0167,lng:28.9713, g:'https://maps.google.com/?q=Egyptian+Spice+Bazaar+Istanbul',          wiki:'Egyptian_Bazaar'},
+    ],
+    plan5:[
+      {title:'Sultanahmet Historique',       theme:"🕌 Cœur de l'Empire Ottoman",   color:'#F4A261',stops:[{id:'hagiasophia',t:'09:00',dur:90,tip:"Arrivez à l'ouverture."},{id:'cisterne',t:'11:00',dur:60,tip:"Tête de Méduse — ambiance unique."},{id:'bluemosque',t:'13:00',dur:60,tip:"Vérifiez les horaires de prière."},{id:'topkapi',t:'15:00',dur:120,tip:"Le trésor impérial."}]},
+      {title:'Bazars & Saveurs',             theme:'🏺 Marchés & gastronomie',      color:'#FFD166',stops:[{id:'grandbazar',t:'09:00',dur:120,tip:"Négociez dans les 60 rues couvertes."},{id:'bazarepicer',t:'12:00',dur:60,tip:"Goûtez les loukoums et le thé turc."},{id:'beyoglu',t:'15:00',dur:120,tip:"Cafés sur Istiklal."},{id:'galata',t:'18:00',dur:60,tip:"Coucher de soleil sur le Bosphore."}]},
+      {title:'Galata & Beyoğlu',             theme:'🌃 Istanbul moderne',            color:'#A8DADC',stops:[{id:'galata',t:'09:00',dur:60,tip:"Vue panoramique le matin."},{id:'beyoglu',t:'11:00',dur:120,tip:"Tramway rouge sur Istiklal."},{id:'dolmabahce',t:'14:00',dur:90,tip:"Façade sur le Bosphore."}]},
+      {title:'Croisière Bosphore',           theme:'⛵ Entre deux continents',       color:'#EF233C',stops:[{id:'bosphore',t:'10:00',dur:180,tip:"Croisière publique depuis Eminönü — 2h pour 2€ !"},{id:'dolmabahce',t:'14:00',dur:90,tip:"Retour par la côte européenne."},{id:'beyoglu',t:'18:00',dur:120,tip:"Dîner avec vue."}]},
+      {title:'Palais & Trésors Ottomans',    theme:'👑 Grandeur impériale',          color:'#8338EC',stops:[{id:'topkapi',t:'09:00',dur:150,tip:"Trésor + Appartements des Sultanes."},{id:'cisterne',t:'12:00',dur:60,tip:"Colonnes romaines éclairées."},{id:'hagiasophia',t:'14:00',dur:90,tip:"L'après-midi : moins de monde."},{id:'grandbazar',t:'17:00',dur:90,tip:"Shopping de fin de journée."}]},
+    ]},
+
+  dubai: { name:'Dubaï', short:'Dubai', flag:'🏙️', country:'Émirats Arabes Unis', color:'#E9C46A',
+    tags:['Gratte-ciel','Luxe','Désert','Moderne','Shopping','Architecture','Unique'],
+    landmarks:[
+      {id:'burjkhalifa',e:'🏗️',n:'Burj Khalifa',               hood:'Downtown Dubai',    desc:"Le plus haut bâtiment du monde (828 m / 163 étages). Observation At the Top au 148e étage.",                                                   tags:['Record mondial','Panorama'],h:'828 m',yr:'2010',lat:25.1972,lng:55.2744, g:'https://maps.google.com/?q=Burj+Khalifa+Dubai',               wiki:'Burj_Khalifa'},
+      {id:'dubaimall',  e:'🛍️',n:'Dubai Mall & Fontaines',      hood:'Downtown Dubai',    desc:"Le plus grand centre commercial du monde (1,1 million m²). Fontaines, patinoire et aquarium géant.",                                           tags:['Shopping','Unique'],      h:'—',     yr:'2008', lat:25.1976,lng:55.2796, g:'https://maps.google.com/?q=Dubai+Mall',                       wiki:'The_Dubai_Mall'},
+      {id:'burjalarab', e:'⛵',n:'Burj Al Arab',                 hood:'Jumeirah',          desc:"L'hôtel 7 étoiles en forme de voile construit sur une île artificielle. Héliport sur le toit.",                                                tags:['Luxe','Architecture'],    h:'321 m', yr:'1999', lat:25.1412,lng:55.1853, g:'https://maps.google.com/?q=Burj+Al+Arab+Dubai',              wiki:'Burj_al-Arab'},
+      {id:'palmjumeirah',e:'🌴',n:'Palm Jumeirah',              hood:'Palm Island',       desc:"L'île artificielle en forme de palmier visible depuis l'espace. Hôtels de luxe et l'Atlantis The Palm.",                                       tags:['Unique','Moderne'],       h:'—',     yr:'2006', lat:25.1124,lng:55.1390, g:'https://maps.google.com/?q=Palm+Jumeirah+Dubai',              wiki:'Palm_Jumeirah'},
+      {id:'dubaiframe', e:'🖼️',n:'Dubai Frame',                 hood:'Zabeel Park',       desc:"Le plus grand cadre du monde (150 m x 93 m) — pont de verre entre le vieux et le nouveau Dubaï.",                                             tags:['Architecture','Panorama'],h:'150 m', yr:'2018', lat:25.2352,lng:55.3002, g:'https://maps.google.com/?q=Dubai+Frame',                       wiki:'Dubai_Frame'},
+      {id:'olddubai',   e:'🏘️',n:'Vieux Dubaï & Al Fahidi',    hood:'Al Fahidi',         desc:"Quartier historique avec maisons en corail et tours à vent. Le Dubaï Museum retrace 4 000 ans d'histoire.",                                    tags:['Histoire','Culture'],     h:'—',     yr:'1800', lat:25.2631,lng:55.2992, g:'https://maps.google.com/?q=Al+Fahidi+Dubai',                     wiki:'Al_Fahidi_neighborhood'},
+      {id:'abra',       e:'⛵',n:"Deira & Abra (Corne d'or)",   hood:'Deira',             desc:"Traversée en abra (barque traditionnelle) pour 1 dirham. Souks de l'or et des épices — les plus animés du Golfe.",                             tags:['Authentique','Gastro'],   h:'—',     yr:'1900', lat:25.2720,lng:55.3085, g:'https://maps.google.com/?q=Deira+Gold+Souk+Dubai',               wiki:'Dubai_Creek'},
+      {id:'desert',     e:'🐪',n:'Safari dans le désert',       hood:'Dubai Desert',      desc:"Quad, dromadaires et dîner sous les étoiles dans les dunes de l'Arabie.",                                                                      tags:['Désert','Unique'],        h:'—',     yr:'—',    lat:24.9730,lng:55.4500, g:'https://maps.google.com/?q=Dubai+Desert+Safari',                  wiki:'Arabian_Desert'},
+      {id:'miracle',    e:'🌸',n:'Dubai Miracle Garden',        hood:'Al Barsha South',   desc:"Le plus grand jardin floral du monde avec 150 millions de fleurs et un Airbus A380 entièrement fleuri.",                                      tags:['Nature','Unique'],        h:'—',     yr:'2013', lat:25.0606,lng:55.2446, g:'https://maps.google.com/?q=Dubai+Miracle+Garden',                wiki:'Dubai_Miracle_Garden'},
+      {id:'motf',       e:'🏛️',n:'Museum of the Future',        hood:'Sheikh Zayed Road', desc:"L'anneau torsadé de 77 m avec calligraphie arabe — élu plus beau bâtiment du monde par CNN.",                                                tags:['Architecture','Futuriste'],h:'77 m', yr:'2022', lat:25.2195,lng:55.2814, g:'https://maps.google.com/?q=Museum+of+the+Future+Dubai',         wiki:'Museum_of_the_Future'},
+    ],
+    plan5:[
+      {title:'Downtown & Burj Khalifa',      theme:'🏗️ Dubaï monumental',           color:'#E9C46A',stops:[{id:'burjkhalifa',t:'09:00',dur:120,tip:"Réservez At the Top Sunrise."},{id:'dubaimall',t:'12:00',dur:120,tip:"Aquarium + patinoire."},{id:'motf',t:'15:00',dur:90,tip:"Architecture hors du commun."},{id:'dubaimall',t:'20:00',dur:60,tip:"Fontaines à 18h, 20h et 22h."}]},
+      {title:'Jumeirah & Palm Island',       theme:'🌴 Luxe & plages',               color:'#FFD166',stops:[{id:'burjalarab',t:'10:00',dur:60,tip:"Photo depuis Jumeirah Beach Road."},{id:'palmjumeirah',t:'12:00',dur:120,tip:"Monoraïl + Atlantis + plage."},{id:'miracle',t:'16:00',dur:90,tip:"Ouvert de 9h à 21h."}]},
+      {title:'Vieux Dubaï & Souks',          theme:'🏘️ Dubaï authentique',           color:'#F4A261',stops:[{id:'olddubai',t:'09:00',dur:90,tip:"Frais le matin."},{id:'abra',t:'11:00',dur:120,tip:"Abra 1 dirham + Souk de l'or."},{id:'dubaiframe',t:'15:00',dur:90,tip:"Pont de verre entre deux Dubaï."}]},
+      {title:'Désert & Coucher de soleil',   theme:'🐪 Expérience du désert',        color:'#EF233C',stops:[{id:'desert',t:'15:00',dur:240,tip:"Safari au coucher + dîner bédouin."},{id:'burjkhalifa',t:'20:00',dur:60,tip:"Burj illuminé la nuit."}]},
+      {title:'Architecture & Futur',         theme:'🔮 Dubaï visionnaire',           color:'#8338EC',stops:[{id:'motf',t:'10:00',dur:90,tip:"L'anneau calligraphique."},{id:'dubaiframe',t:'12:00',dur:90,tip:"Vue sur les deux Dubaï."},{id:'palmjumeirah',t:'14:00',dur:120,tip:"Pointe du palmier."},{id:'burjkhalifa',t:'18:00',dur:120,tip:"Sunset depuis At the Top."}]},
+    ]},
+};
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let city=null, activeLM=null;
+let selDaysN=1, selInts=new Set(['all']), selTrns='walking', itinData=null, activeDayIdx=0;
+
+// ═══════════════════════════════════════════════════════════
+//  CITY SELECT
+// ═══════════════════════════════════════════════════════════
+function buildCitySelect(){
+  const list=document.getElementById('city-list');
+  const desc={nyc:{sub:'15 monuments',tags:['Art déco','Central Park','Musées']},paris:{sub:'12 monuments',tags:['Louvre','Tour Eiffel','Versailles']},tokyo:{sub:'12 monuments',tags:['Senso-ji','Shibuya','teamLab']},istanbul:{sub:'10 monuments',tags:['Hagia Sophia','Grand Bazar','Bosphore']},dubai:{sub:'10 monuments',tags:['Burj Khalifa','Palm','Désert']}};
+  Object.entries(CITIES).forEach(([key,c])=>{
+    const d=desc[key];
+    const card=document.createElement('div');card.className='city-card';card.onclick=()=>launchCity(key);
+    card.innerHTML=`<div class="city-flag">${c.flag}</div><div class="city-info"><div class="city-name" style="color:${c.color}">${c.name}</div><div class="city-country">${c.country} · ${d.sub}</div><div class="city-meta">${d.tags.map(t=>`<span class="city-tag" style="color:${c.color};border-color:${c.color}40">${t}</span>`).join('')}</div></div><div class="city-arrow">›</div>`;
+    list.appendChild(card);
+  });
+}
+function goHome(){document.getElementById('city-select').classList.remove('hidden');document.getElementById('app').classList.remove('active');}
+
+// ═══════════════════════════════════════════════════════════
+//  LAUNCH
+// ═══════════════════════════════════════════════════════════
+function launchCity(key){
+  city=CITIES[key];
+  document.getElementById('city-select').classList.add('hidden');
+  document.getElementById('app').classList.add('active');
+  document.getElementById('loading').classList.remove('done');
+  document.getElementById('loading-text').textContent=`Chargement de ${city.name}…`;
+  document.documentElement.style.setProperty('--accent',city.color);
+  document.getElementById('top-flag').textContent=city.flag;
+  document.getElementById('top-city-name').textContent=city.short;
+  document.getElementById('top-count').textContent=city.landmarks.length;
+  document.getElementById('itin-city-name').textContent=city.name;
+  document.getElementById('five-city-name').textContent=city.name;
+  document.getElementById('five-sub').textContent=`Parcours optimisé · ${city.landmarks.length} monuments`;
+  selInts=new Set(['all']);selDaysN=1;selTrns='walking';itinData=null;
+  buildInterestPills();
+  // Pre-fetch all photos
+  city.landmarks.forEach(lm=>{ if(lm.wiki) fetchWikiPhoto(lm.wiki); });
+  setTimeout(()=>{
+    document.getElementById('loading').classList.add('done');
+    renderMonuments('');
+    buildFiveDay();
+    buildSports();
+    switchTab('monuments');
+    document.getElementById('search-input').value='';
+  },900);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════════════════
+function switchTab(tab){
+  ['monuments','itin','five','sports'].forEach(t=>{
+    document.getElementById('nav-'+t).classList.toggle('active',t===tab);
+    document.getElementById(t+'-screen').classList.toggle('active',t===tab);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MONUMENTS SCREEN
+// ═══════════════════════════════════════════════════════════
+function renderMonuments(query){
+  if(!city)return;
+  const q=query.toLowerCase().trim();
+  const lms=city.landmarks.filter(lm=>!q||lm.n.toLowerCase().includes(q)||lm.hood.toLowerCase().includes(q)||lm.tags.some(t=>t.toLowerCase().includes(q)));
+  const body=document.getElementById('monuments-body');body.innerHTML='';
+  if(!lms.length){body.innerHTML='<div style="padding:3rem 1.2rem;text-align:center;color:rgba(240,237,232,.3);font-size:.85rem">Aucun monument trouvé</div>';return;}
+  const grid=document.createElement('div');grid.className='monument-grid';
+  lms.forEach((lm,i)=>{ grid.appendChild(i===0 ? mkFeaturedCard(lm) : mkCard(lm)); });
+  body.appendChild(grid);
+}
+
+function mkFeaturedCard(lm){
+  const card=document.createElement('div');card.className='mc-featured';card.onclick=()=>showDetail(lm);
+  card.innerHTML=`
+    <div class="mc-featured-photo">
+      <div class="shimmer"></div>
+      <img alt="${lm.n}">
+      <div class="ef">${lm.e}</div>
+    </div>
+    <div class="mc-featured-body">
+      <div style="font-size:1.3rem;margin-bottom:.2rem">${lm.e}</div>
+      <div class="mc-featured-name">${lm.n}</div>
+      <div class="mc-featured-hood">${lm.hood}</div>
+      <div class="mc-featured-tags">${lm.tags.map(t=>`<span class="mc-tag">${t}</span>`).join('')}</div>
+    </div>
+    <div class="mc-featured-gmap" onclick="event.stopPropagation();window.open('${lm.g}','_blank')">📍</div>`;
+  const wrap=card.querySelector('.mc-featured-photo');
+  const img=wrap.querySelector('img');
+  const sh=wrap.querySelector('.shimmer');
+  const ef=wrap.querySelector('.ef');
+  if(lm.wiki){
+    fetchWikiPhoto(lm.wiki).then(src=>{
+      sh.style.display='none';
+      if(src){img.onload=()=>{img.classList.add('ok');ef.style.display='none';};img.onerror=()=>{ef.style.display='flex';};img.src=src;}
+      else{ef.style.display='flex';}
+    });
+  } else { sh.style.display='none'; ef.style.display='flex'; }
+  return card;
+}
+
+function mkCard(lm){
+  const card=document.createElement('div');card.className='mc-card';card.onclick=()=>showDetail(lm);
+  card.innerHTML=`
+    <div class="mc-card-photo">
+      <div class="shimmer"></div>
+      <img alt="${lm.n}">
+      <div class="ef">${lm.e}</div>
+    </div>
+    <div class="mc-card-body">
+      <div class="mc-card-name">${lm.e} ${lm.n}</div>
+      <div class="mc-card-hood">${lm.hood}</div>
+      <div class="mc-card-tags">${lm.tags.map(t=>`<span class="mc-tag">${t}</span>`).join('')}</div>
+    </div>
+    <div class="mc-card-gmap" onclick="event.stopPropagation();window.open('${lm.g}','_blank')">📍</div>`;
+  const wrap=card.querySelector('.mc-card-photo');
+  const img=wrap.querySelector('img');
+  const sh=wrap.querySelector('.shimmer');
+  const ef=wrap.querySelector('.ef');
+  if(lm.wiki){
+    fetchWikiPhoto(lm.wiki).then(src=>{
+      sh.style.display='none';
+      if(src){img.onload=()=>{img.classList.add('ok');ef.style.display='none';};img.onerror=()=>{ef.style.display='flex';};img.src=src;}
+      else{ef.style.display='flex';}
+    });
+  } else { sh.style.display='none'; ef.style.display='flex'; }
+  return card;
+}
+
+function filterMonuments(val){renderMonuments(val);}
+
+// ═══════════════════════════════════════════════════════════
+//  DETAIL PANEL
+// ═══════════════════════════════════════════════════════════
+function showDetail(lm){
+  activeLM=lm;
+  const img=document.getElementById('dp-img');
+  const sh=document.getElementById('dp-shimmer');
+  const ef=document.getElementById('dp-ef');
+  img.classList.remove('ok');img.src='';img.style.display='block';
+  sh.style.display='block';ef.style.display='none';
+  document.getElementById('dp-emoji').textContent=lm.e;
+  if(lm.wiki){
+    fetchWikiPhoto(lm.wiki).then(src=>{
+      sh.style.display='none';
+      if(src){
+        img.onload=()=>img.classList.add('ok');
+        img.onerror=()=>{img.style.display='none';ef.textContent=lm.e;ef.style.display='flex';};
+        img.src=src;
+      } else {img.style.display='none';ef.textContent=lm.e;ef.style.display='flex';}
+    });
+  } else {sh.style.display='none';img.style.display='none';ef.textContent=lm.e;ef.style.display='flex';}
+  document.getElementById('p-name').textContent=lm.n;
+  document.getElementById('p-hood').textContent=lm.hood;
+  document.getElementById('p-desc').textContent=lm.desc;
+  document.getElementById('p-tags').innerHTML=lm.tags.map((t,i)=>`<span class="tag${i===0?' hl':''}">${t}</span>`).join('');
+  document.getElementById('p-h').textContent=lm.h;
+  document.getElementById('p-yr').textContent=lm.yr;
+  document.getElementById('p-tag1').textContent=lm.tags[0]||'—';
+  document.getElementById('detail-panel').classList.add('open');
+}
+function closePanel(){document.getElementById('detail-panel').classList.remove('open');activeLM=null;}
+function openMaps(){if(activeLM)window.open(activeLM.g,'_blank');}
+
+// ═══════════════════════════════════════════════════════════
+//  ITINERARY
+// ═══════════════════════════════════════════════════════════
+function buildInterestPills(){
+  if(!city)return;
+  const c=document.getElementById('interest-pills');c.innerHTML='';
+  const ab=document.createElement('button');ab.className='pill active';ab.dataset.t='all';ab.textContent='🌍 Tout';ab.onclick=()=>togInt(ab);c.appendChild(ab);
+  city.tags.forEach(tag=>{const btn=document.createElement('button');btn.className='pill';btn.dataset.t=tag;btn.textContent=tag;btn.onclick=()=>togInt(btn);c.appendChild(btn);});
+}
+function selDays(n){selDaysN=n;document.querySelectorAll('.day-pill').forEach(b=>b.classList.toggle('active',+b.dataset.d===n));}
+function togInt(btn){
+  const t=btn.dataset.t;
+  if(t==='all'){selInts=new Set(['all']);document.querySelectorAll('#interest-pills .pill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');return;}
+  selInts.delete('all');document.querySelector('#interest-pills .pill[data-t="all"]').classList.remove('active');
+  selInts.has(t)?(selInts.delete(t),btn.classList.remove('active')):(selInts.add(t),btn.classList.add('active'));
+  if(!selInts.size){selInts.add('all');document.querySelector('#interest-pills .pill[data-t="all"]').classList.add('active');}
+}
+function selTrans(btn){selTrns=btn.dataset.m;document.querySelectorAll('.pill[data-m]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+
+const VD={empire:90,timessq:60,brooklyn:60,centralpark:120,liberty:180,wtc:90,met:150,gugge:90,flatiron:30,grandcen:45,highline:60,moma:120,wallst:30,dumbo:60,mem911:90,eiffel:120,louvre:180,notredame:60,montmartre:90,arc:90,orsay:120,pompidou:90,versailles:240,sainteChap:60,marais:90,invalides:60,palaisroyal:45,sensoji:90,skytree:120,shibuya:60,meiji:60,shinjuku:120,akihabara:90,harajuku:60,ueno:120,teamlab:120,asakusa:60,roppongi:90,ginza:90,hagiasophia:90,bluemosque:60,topkapi:120,grandbazar:120,bosphore:180,cisterne:60,galata:60,beyoglu:90,dolmabahce:90,bazarepicer:60,burjkhalifa:120,dubaimall:120,burjalarab:45,palmjumeirah:120,dubaiframe:90,olddubai:90,abra:90,desert:240,miracle:90,motf:90};
+function getDur(id){return VD[id]||70;}
+function tvt(a,b){return Math.round(dist(a,b)/({walking:80,transit:400,driving:600}[selTrns]))+({walking:3,transit:10,driving:8}[selTrns]);}
+function fmtT(m){return`${Math.floor(m/60)}h${String(m%60).padStart(2,'0')}`;}
+function nnRoute(pool,start){const rem=[...pool],route=[];let cur=start;while(rem.length){let mi=Infinity,ni=null,ni2=-1;rem.forEach((lm,i)=>{const d=dist(cur,lm);if(d<mi){mi=d;ni=lm;ni2=i;}});route.push(ni);rem.splice(ni2,1);cur=ni;}return route;}
+
+function generateItin(){
+  if(!city)return;
+  let pool=selInts.has('all')?[...city.landmarks]:city.landmarks.filter(lm=>lm.tags.some(t=>selInts.has(t)));
+  pool.sort((a,b)=>dist(city.center||{lat:a.lat,lng:a.lng},a)-dist(city.center||{lat:b.lat,lng:b.lng},b));
+  pool=pool.slice(0,selDaysN*({walking:5,transit:8,driving:8}[selTrns]));
+  const ctr=city.landmarks[0];
+  const route=nnRoute(pool,ctr);
+  const days=[];let cur=[];let m=540;let prev=ctr;
+  for(const lm of route){const tr=tvt(prev,lm),vi=getDur(lm.id);if(m+tr+vi>1260&&cur.length){days.push(cur);cur=[];m=540;prev=ctr;}cur.push({lm,arrival:m+tr,dur:vi,tr});m+=tr+vi;prev=lm;}
+  if(cur.length)days.push(cur);
+  itinData=days;
+  document.getElementById('itin-cfg').style.display='none';
+  const res=document.getElementById('itin-res');res.style.display='flex';res.style.flexDirection='column';
+  const total=days.reduce((s,d)=>s+d.length,0);
+  const tl={walking:'🚶 Marche',transit:'🚇 Métro',driving:'🚕 Taxi'}[selTrns];
+  document.getElementById('res-chips').innerHTML=`<div class="chip"><span>${days.length}</span> jour${days.length>1?'s':''}</div><div class="chip"><span>${total}</span> monuments</div><div class="chip">${tl}</div>`;
+  document.getElementById('res-title').textContent=`${city.short} · ${days.length}j`;
+  const container=document.getElementById('res-days');container.innerHTML='';
+  const themes=['Incontournables','Musées & Culture','Quartiers historiques','Architecture','Découvertes'];
+  days.forEach((stops,di)=>{
+    const blk=document.createElement('div');blk.className='day-block';
+    blk.innerHTML=`<div class="day-hdr-row"><div class="day-badge">Jour ${di+1}</div><div class="day-theme-lbl">${themes[di%themes.length]}</div></div>`;
+    stops.forEach((s,si)=>blk.appendChild(mkStop(s.lm,s.arrival,s.dur,s.tr,si===stops.length-1,null)));
+    container.appendChild(blk);
+  });
+}
+
+function mkStop(lm,arrMin,durMin,trMin,isLast,tip){
+  const card=document.createElement('div');card.className='stop-card';
+  card.onclick=()=>{switchTab('monuments');setTimeout(()=>showDetail(lm),200);};
+  const tipB=tip?`<div class="stop-tip">💡 ${tip}</div>`:'';
+  card.innerHTML=`
+    <div class="stop-tl"><div class="stop-time">${fmtT(arrMin)}</div><div class="stop-dot"></div>${!isLast?'<div class="stop-line"></div>':''}</div>
+    <div class="stop-thumb">
+      <img alt="${lm.n}">
+      <div class="ef">${lm.e}</div>
+    </div>
+    <div class="stop-info">
+      <div class="stop-name">${lm.e} ${lm.n}</div>
+      <div class="stop-hood">${lm.hood}</div>
+      <div class="stop-meta">
+        <span class="sb">⏱ ${durMin>=60?Math.round(durMin/60)+'h':durMin+'min'}</span>
+        ${lm.tags[0]?`<span class="sb">${lm.tags[0]}</span>`:''}
+        ${trMin>0?`<span class="sb g">✈ ${trMin}min</span>`:''}
+      </div>${tipB}
+    </div>
+    <div class="stop-gmap" onclick="event.stopPropagation();window.open('${lm.g}','_blank')">📍</div>`;
+  const wrap=card.querySelector('.stop-thumb');
+  const img=wrap.querySelector('img');
+  const ef2=wrap.querySelector('.ef');
+  if(lm.wiki){
+    fetchWikiPhoto(lm.wiki).then(src=>{
+      if(src){img.onload=()=>{img.classList.add('ok');ef2.style.display='none';};img.onerror=()=>{ef2.style.display='flex';};img.src=src;}
+      else{ef2.style.display='flex';}
+    });
+  } else {ef2.style.display='flex';}
+  return card;
+}
+
+function showCfg(){document.getElementById('itin-cfg').style.display='block';document.getElementById('itin-res').style.display='none';}
+function openFullRoute(){
+  if(!itinData)return;
+  const all=itinData.flat().map(s=>s.lm);
+  const wp=all.slice(1,-1).map(l=>`${l.lat},${l.lng}`).join('|');
+  window.open(`https://www.google.com/maps/dir/?api=1&origin=${all[0].lat},${all[0].lng}&destination=${all[all.length-1].lat},${all[all.length-1].lng}&waypoints=${wp}&travelmode=${selTrns}`,'_blank');
+}
+function exportItin(){
+  if(!itinData)return;
+  let txt=`🌍 Itinéraire ${city.name}\n${'-'.repeat(28)}\n`;
+  itinData.forEach((s,di)=>{txt+=`\n📅 JOUR ${di+1}\n`;s.forEach(x=>txt+=`  ${fmtT(x.arrival)} – ${x.lm.e} ${x.lm.n}\n`);});
+  navigator.share?navigator.share({title:`Itinéraire ${city.name}`,text:txt}):navigator.clipboard?.writeText(txt).then(()=>alert('Copié !'));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  5-DAY
+// ═══════════════════════════════════════════════════════════
+function buildFiveDay(){
+  if(!city)return;
+  const strip=document.getElementById('day-tabs-strip');strip.innerHTML='';
+  city.plan5.forEach((day,i)=>{
+    const btn=document.createElement('button');btn.className='day-tab-btn'+(i===0?' active':'');
+    btn.textContent=`Jour ${i+1} — ${day.title}`;btn.onclick=()=>selDayTab(i);strip.appendChild(btn);
+  });
+  renderDay(0);
+}
+function selDayTab(i){activeDayIdx=i;document.querySelectorAll('.day-tab-btn').forEach((b,j)=>b.classList.toggle('active',j===i));renderDay(i);}
+function renderDay(di){
+  if(!city)return;
+  const day=city.plan5[di],body=document.getElementById('fiveday-body');body.innerHTML='';
+  const hdr=document.createElement('div');hdr.className='day-card-hdr';
+  hdr.innerHTML=`<div class="day-color-bar" style="background:${day.color}"></div><div class="day-card-title" style="color:${day.color}">${day.theme}</div><div class="day-card-sub">${day.stops.length} arrêts · ~${Math.round(day.stops.reduce((s,x)=>s+x.dur,0)/60*10)/10}h</div>`;
+  body.appendChild(hdr);
+  day.stops.forEach((stop,si)=>{
+    const lm=city.landmarks.find(l=>l.id===stop.id);if(!lm)return;
+    const [h,m]=stop.t.split(':'),arr=+h*60+ +m;
+    body.appendChild(mkStop(lm,arr,stop.dur,0,si===day.stops.length-1,stop.tip));
+  });
+  const ids=day.stops.map(s=>city.landmarks.find(l=>l.id===s.id)).filter(Boolean);
+  if(ids.length<2)return;
+  const wp=ids.slice(1,-1).map(l=>`${l.lat},${l.lng}`).join('|');
+  const url=`https://www.google.com/maps/dir/?api=1&origin=${ids[0].lat},${ids[0].lng}&destination=${ids[ids.length-1].lat},${ids[ids.length-1].lng}&waypoints=${wp}&travelmode=walking`;
+  const gb=document.createElement('div');gb.className='gmaps-blk';
+  gb.innerHTML=`<button class="btn-gfull" onclick="window.open('${url}','_blank')">📍 Jour ${di+1} dans Google Maps</button>`;
+  body.appendChild(gb);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+function dist(a,b){const R=6371000,p1=a.lat*Math.PI/180,p2=b.lat*Math.PI/180,dp=(b.lat-a.lat)*Math.PI/180,dl=(b.lng-a.lng)*Math.PI/180,x=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+
+// ═══════════════════════════════════════════════════════════
+//  SPORTS DATA
+// ═══════════════════════════════════════════════════════════
+const SPORTS = {
+  nyc: {
+    sports: [
+      { sport:'🏈 Football américain', teams:[
+        {name:'New York Giants',    league:'NFL · NFC East',   stadium:'MetLife Stadium',  color:'#0B2265', desc:"Deux fois Super Bowl depuis 2000. La franchise la plus ancienne de New York, fondée en 1925.",              tags:['Super Bowl','NFL'],   wiki:'New_York_Giants',         e:'🏈'},
+        {name:'New York Jets',      league:'NFL · AFC East',   stadium:'MetLife Stadium',  color:'#125740', desc:"Fondés en 1960, les Jets partagent MetLife Stadium avec les Giants. La quête du Super Bowl continue.",     tags:['NFL','AFC'],          wiki:'New_York_Jets',           e:'🏈'},
+      ]},
+      { sport:'⚾ Baseball', teams:[
+        {name:'New York Yankees',   league:'MLB · AL East',    stadium:'Yankee Stadium',   color:'#003087', desc:"La franchise la plus titrée du sport américain — 27 World Series. The Bronx Bombers sont une légende.",    tags:['27 titres','MLB'],    wiki:'New_York_Yankees',        e:'⚾'},
+        {name:'New York Mets',      league:'MLB · NL East',    stadium:'Citi Field',       color:'#002D72', desc:"Fondés en 1962 pour remplacer les Giants et Dodgers. 2 World Series (1969 et 1986).",                     tags:['MLB','Queens'],       wiki:'New_York_Mets',           e:'⚾'},
+      ]},
+      { sport:'🏀 Basketball', teams:[
+        {name:'New York Knicks',    league:'NBA · Atlantic',   stadium:'Madison Square Garden',color:'#006BB6',desc:"Fondés en 1946, les Knicks jouent au Madison Square Garden — la Mecque du basketball mondial.",        tags:['NBA','MSG'],          wiki:'New_York_Knicks',         e:'🏀'},
+        {name:'Brooklyn Nets',      league:'NBA · Atlantic',   stadium:'Barclays Center',  color:'#000000', desc:"Arrivés de New Jersey en 2012, les Nets ont attiré des superstars comme Durant et Harden.",              tags:['NBA','Brooklyn'],     wiki:'Brooklyn_Nets',           e:'🏀'},
+      ]},
+      { sport:'🏒 Hockey', teams:[
+        {name:'New York Rangers',   league:'NHL · Metropolitan',stadium:'Madison Square Garden',color:'#0038A8',desc:"Fondés en 1926, les Rangers jouent au MSG. 4 Coupes Stanley dont la dernière en 1994.",             tags:['NHL','Stanley Cup'],  wiki:'New_York_Rangers',        e:'🏒'},
+        {name:'New York Islanders', league:'NHL · Metropolitan',stadium:'UBS Arena',        color:'#00539B', desc:"4 Coupes Stanley consécutives (1980-1983) — une des dynasties les plus impressionnantes du hockey.",     tags:['NHL','Dynasty'],      wiki:'New_York_Islanders',      e:'🏒'},
+      ]},
+      { sport:'⚽ Football', teams:[
+        {name:'New York City FC',   league:'MLS · Eastern',    stadium:'Yankee Stadium',   color:'#6CACE4', desc:"Club fondé en 2013 par Manchester City et les Yankees. Champion MLS 2021.",                             tags:['MLS','2021'],         wiki:'New_York_City_FC',        e:'⚽'},
+        {name:'New York Red Bulls', league:'MLS · Eastern',    stadium:'Red Bull Arena',   color:'#ED1B2D', desc:"L'un des clubs fondateurs de la MLS (1996). Stade ultramoderne dans le New Jersey.",                   tags:['MLS','Red Bull'],     wiki:'New_York_Red_Bulls',      e:'⚽'},
+      ]},
+    ]
+  },
+  paris: {
+    sports: [
+      { sport:'⚽ Football', teams:[
+        {name:'Paris Saint-Germain',league:'Ligue 1',          stadium:'Parc des Princes', color:'#004170', desc:"Le club le plus riche de France, racheté par le Qatar en 2011. Neymar, Mbappé et Messi y ont joué.",    tags:['Ligue 1','QSI'],     wiki:'Paris_Saint-Germain_FC',  e:'⚽'},
+      ]},
+      { sport:'🏀 Basketball', teams:[
+        {name:'Paris Basketball',   league:'Pro A / Euroleague',stadium:'Accor Arena',     color:'#0055A4', desc:"Club fondé en 2018, devenu rapidement l'un des meilleurs clubs français. Participe à l'Euroleague.",    tags:['Pro A','Euroleague'], wiki:'Paris_Basketball',        e:'🏀'},
+        {name:'Paris Lee District', league:'Pro B',             stadium:'Salle Charenton', color:'#E30613', desc:"Club historique parisien qui gravite entre la Pro A et la Pro B.",                                      tags:['Pro B'],              wiki:'Paris_Basketball',        e:'🏀'},
+      ]},
+      { sport:'🎾 Tennis', teams:[
+        {name:'Roland-Garros',      league:'Grand Chelem',     stadium:'Stade Roland-Garros',color:'#C8420B',desc:"Le seul Grand Chelem sur terre battue. Chaque année en mai-juin, les meilleurs joueurs du monde s'y affrontent.", tags:['Grand Chelem','Terra battue'],wiki:'Roland_Garros', e:'🎾'},
+      ]},
+      { sport:'🏉 Rugby', teams:[
+        {name:'Stade Français Paris',league:'Top 14',          stadium:'Stade Jean-Bouin', color:'#F0147C', desc:"Club parisien fondé en 1883, 14 fois champion de France. Connu pour ses tenues extravagantes.",          tags:['Top 14','14 titres'], wiki:'Stade_Français_Paris',    e:'🏉'},
+        {name:'Racing 92',          league:'Top 14',           stadium:'Paris La Défense Arena',color:'#009EE0',desc:"La «fusée» des Hauts-de-Seine, régulièrement en haut du classement Top 14 et en Champions Cup.",   tags:['Top 14','Champions Cup'],wiki:'Racing_92',            e:'🏉'},
+      ]},
+      { sport:'🚴 Cyclisme', teams:[
+        {name:'Tour de France',     league:'UCI World Tour',   stadium:'Champs-Élysées',  color:'#FFD700', desc:"La Grande Boucle se termine chaque juillet sur les Champs-Élysées. L'événement sportif le plus suivi au monde.",  tags:['UCI','Juillet'], wiki:'Tour_de_France',          e:'🚴'},
+      ]},
+    ]
+  },
+  tokyo: {
+    sports: [
+      { sport:'⚾ Baseball', teams:[
+        {name:'Yomiuri Giants',     league:'NPB · Central League',stadium:'Tokyo Dome',    color:'#FF6600', desc:"Les Giants sont l'équipe la plus populaire du Japon avec 22 titres. Le Tokyo Dome est surnommé «Big Egg».", tags:['NPB','22 titres'],  wiki:'Yomiuri_Giants',          e:'⚾'},
+        {name:'Tokyo Yakult Swallows',league:'NPB · Central',  stadium:'Meiji Jingu Stadium',color:'#00843D',desc:"Rival des Giants, les Swallows jouent au stade Jingu, au cœur du quartier de Harajuku.",                tags:['NPB','Jingu'],        wiki:'Tokyo_Yakult_Swallows',   e:'⚾'},
+      ]},
+      { sport:'⚽ Football', teams:[
+        {name:'FC Tokyo',           league:'J1 League',        stadium:'Ajinomoto Stadium',color:'#003087', desc:"Club phare de la capitale, fondé en 1935. Joue dans le stade olympique de Tokyo.",                       tags:['J1','Tokyo'],         wiki:'FC_Tokyo',                e:'⚽'},
+        {name:'Tokyo Verdy',        league:'J2 League',        stadium:'Ajinomoto Stadium',color:'#006400', desc:"L'un des clubs fondateurs du football professionnel japonais, champion dans les années 1990.",           tags:['J2','Fondateur'],     wiki:'Tokyo_Verdy',             e:'⚽'},
+      ]},
+      { sport:'🏀 Basketball', teams:[
+        {name:'Alvark Tokyo',       league:'B.League',         stadium:'Ariake Colosseum',color:'#C8102E', desc:"Champion du Japon en 2018 et 2019. Jouent au moderne Ariake Colosseum, construit pour les JO 2020.",      tags:['B.League','Champion'],wiki:'Alvark_Tokyo',            e:'🏀'},
+      ]},
+      { sport:'🏉 Rugby', teams:[
+        {name:'Suntory Sungoliath', league:'NTT Japan Rugby League',stadium:'Chichibunomiya',color:'#0032A0',desc:"Club d'entreprise le plus titré du rugby japonais, sponsorisé par Suntory.",                           tags:['Rugby','Suntory'],    wiki:'Suntory_Sungoliath',      e:'🏉'},
+      ]},
+      { sport:'🥋 Sumo', teams:[
+        {name:'Sumo — Ryogoku Kokugikan',league:'Honbasho',    stadium:'Kokugikan',       color:'#8B0000', desc:"Le sport national du Japon. Trois des six tournois annuels se déroulent au Kokugikan de Tokyo.",          tags:['Tradition','Honbasho'],wiki:'Ryōgoku_Kokugikan',      e:'🥋'},
+      ]},
+    ]
+  },
+  istanbul: {
+    sports: [
+      { sport:'⚽ Football', teams:[
+        {name:'Galatasaray',        league:'Süper Lig',        stadium:'RAMS Park',        color:'#CC0000', desc:"Le club turc le plus célèbre en Europe. Vainqueur de la Coupe UEFA 2000, légendaire pour son ambiance enflammée.", tags:['Süper Lig','UEFA Cup'],wiki:'Galatasaray_S.K.',      e:'⚽'},
+        {name:'Fenerbahçe',         league:'Süper Lig',        stadium:'Şükrü Saracoğlu',  color:'#FFB300', desc:"Rival éternel de Galatasaray, le Fenerbahçe est le club le plus titré du championnat turc avec 28 titres.", tags:['28 titres','Rival'],  wiki:'Fenerbahçe_S.K.',         e:'⚽'},
+        {name:'Beşiktaş',           league:'Süper Lig',        stadium:'Vodafone Park',    color:'#000000', desc:"Les Aigles Noirs jouent dans un stade ultramoderne au bord du Bosphore. 3 fois champions ces 10 dernières années.", tags:['Süper Lig','Bosphore'],wiki:'Beşiktaş_J.K.',         e:'⚽'},
+      ]},
+      { sport:'🏀 Basketball', teams:[
+        {name:'Anadolu Efes',       league:'BSL / Euroleague', stadium:'Sinan Erdem Dome', color:'#FF6B00', desc:"Double champion d'Euroleague (2021 et 2022). L'une des meilleures équipes de basketball d'Europe.",       tags:['Euroleague','2021-22'],wiki:'Anadolu_Efes_S.K.',      e:'🏀'},
+        {name:'Fenerbahçe Beko',    league:'BSL / Euroleague', stadium:'Ülker Sports Arena',color:'#FFB300',desc:"Finaliste d'Euroleague 2017. Le bras armé du géant Fenerbahçe dans le basket-ball.",                    tags:['Euroleague','BSL'],   wiki:'Fenerbahçe_Beko',         e:'🏀'},
+      ]},
+      { sport:'🏐 Volleyball', teams:[
+        {name:'Vakıfbank Istanbul', league:'Sultans League',   stadium:'Burhan Felek',     color:'#FFD700', desc:"Le club de volley féminin le plus titré en Europe — 5 Ligues des Champions. Domination absolue.",          tags:['5 Champions League','Femmes'],wiki:'VakıfBank_SK',    e:'🏐'},
+      ]},
+    ]
+  },
+  dubai: {
+    sports: [
+      { sport:'⚽ Football', teams:[
+        {name:'Al Ain FC',          league:'UAE Pro League',   stadium:'Hazza bin Zayed', color:'#8B0000', desc:"Le club le plus titré des Émirats (14 titres). Finaliste du Mondial des Clubs 2018 face au Real Madrid.", tags:['14 titres','Club WC'],wiki:'Al_Ain_FC',               e:'⚽'},
+        {name:'Al Wasl FC',         league:'UAE Pro League',   stadium:'Al Wasl Sports Club',color:'#FF6B00',desc:"Club de Dubaï fondé en 1959. Diego Maradona en fut brièvement l'entraîneur en 2011.",                   tags:['UAE Pro League','Dubaï'],wiki:'Al_Wasl_FC',            e:'⚽'},
+      ]},
+      { sport:'🎾 Tennis', teams:[
+        {name:'Dubai Tennis Championships',league:'ATP 500 / WTA 1000',stadium:'Dubai Duty Free Tennis Stadium',color:'#C8420B',desc:"Tournoi ATP 500 et WTA 1000 en février. Djokovic, Federer et Nadal y ont triomphé.",   tags:['ATP 500','WTA 1000'], wiki:'Dubai_Tennis_Championships',e:'🎾'},
+      ]},
+      { sport:'🏇 Équitation & Course', teams:[
+        {name:'Dubai World Cup',    league:'Horse Racing',     stadium:'Meydan Racecourse',color:'#FFD700', desc:"La course hippique la plus riche du monde (12 millions $). Chaque mars à Meydan, une nuit de faste unique.", tags:['12M$','Meydan'],     wiki:'Dubai_World_Cup',         e:'🏇'},
+      ]},
+      { sport:'🏏 Cricket', teams:[
+        {name:'International Cricket (ICC)',league:'ICC HQ',   stadium:'Dubai International Cricket Stadium',color:'#004225',desc:"Le siège mondial du cricket (ICC) est à Dubaï. Le stade accueille les grandes compétitions.", tags:['ICC HQ','International'],wiki:'Dubai_International_Cricket_Stadium',e:'🏏'},
+      ]},
+      { sport:'🏎️ Formule 1', teams:[
+        {name:'Abu Dhabi Grand Prix',league:'FIA Formula 1',  stadium:'Yas Marina Circuit',color:'#E8002D', desc:"À 1h de Dubaï, le circuit de Yas Marina clôt chaque saison de F1 depuis 2009 dans un cadre spectaculaire.", tags:['F1','Yas Marina'],    wiki:'Abu_Dhabi_Grand_Prix',    e:'🏎️'},
+      ]},
+    ]
+  }
+};
+
+let activeSportTab = 0;
+
+// ═══════════════════════════════════════════════════════════
+//  SPORTS FUNCTIONS
+// ═══════════════════════════════════════════════════════════
+function buildSports(){
+  if(!city)return;
+  const data=SPORTS[Object.keys(CITIES).find(k=>CITIES[k]===city)];
+  if(!data)return;
+  document.getElementById('sports-city-name').textContent=city.name;
+  document.getElementById('sports-sub').textContent=`${data.sports.reduce((s,d)=>s+d.teams.length,0)} équipes · ${data.sports.length} sports`;
+  const tabs=document.getElementById('sport-tabs');tabs.innerHTML='';
+  data.sports.forEach((s,i)=>{
+    const btn=document.createElement('button');btn.className='sport-tab'+(i===0?' active':'');
+    btn.textContent=s.sport;btn.onclick=()=>selSportTab(i,data);tabs.appendChild(btn);
+  });
+  renderSport(0,data);
+}
+function selSportTab(i,data){
+  activeSportTab=i;
+  document.querySelectorAll('.sport-tab').forEach((b,j)=>b.classList.toggle('active',j===i));
+  renderSport(i,data);
+}
+function renderSport(i,data){
+  const section=data.sports[i];
+  const body=document.getElementById('sports-body');body.innerHTML='';
+  section.teams.forEach(team=>{
+    const card=document.createElement('div');card.className='team-card';
+    card.innerHTML=`
+      <div class="team-color-bar" style="background:${team.color}"></div>
+      <div class="team-card-photo">
+        <div class="shimmer"></div>
+        <img alt="${team.name}">
+        <div class="ef">${team.e}</div>
+      </div>
+      <div class="team-card-body">
+        <div class="team-name">${team.name}</div>
+        <div class="team-league">🏟️ ${team.stadium} · ${team.league}</div>
+        <div class="team-desc">${team.desc}</div>
+        <div class="team-tags">${team.tags.map(t=>`<span class="team-tag">${t}</span>`).join('')}</div>
+      </div>`;
+    // Load photo
+    const wrap=card.querySelector('.team-card-photo');
+    const img=wrap.querySelector('img');
+    const sh=wrap.querySelector('.shimmer');
+    const ef2=wrap.querySelector('.ef');
+    if(team.wiki){
+      fetchWikiPhoto(team.wiki).then(src=>{
+        sh.style.display='none';
+        if(src){img.onload=()=>{img.classList.add('ok');ef2.style.display='none';};img.onerror=()=>{ef2.style.display='flex';};img.src=src;}
+        else{ef2.style.display='flex';}
+      });
+    } else {sh.style.display='none';ef2.style.display='flex';}
+    body.appendChild(card);
+  });
+}
+
+buildCitySelect();
+</script>
+</body>
+</html>
